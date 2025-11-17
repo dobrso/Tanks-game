@@ -3,8 +3,11 @@ import sys
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QApplication
 
 from AudioPlayer import AudioPlayer
-from Screens import Navigation, MenuScreen, RoomsScreen, CreateRoomScreen
-from settings import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, MUSIC_PATH
+from Client import Client
+from Communication import Communication
+from Screens import MenuScreen, RoomsScreen, CreateRoomScreen, GameScreen
+from ScreensNavigation import Navigation
+from Settings import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, MUSIC_PATH
 
 
 class MainWindow(QMainWindow):
@@ -12,6 +15,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle(WINDOW_TITLE)
         self.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
+
+        self.communication = Communication()
+        self.client = Client(self.communication)
 
         self.audioPlayer = AudioPlayer()
         self.audioPlayer.playMusic(MUSIC_PATH["MENU"])
@@ -21,22 +27,25 @@ class MainWindow(QMainWindow):
 
         self.navigation = Navigation(self.stackedWidget)
 
-        self.createScreen()
+        self.createScreens()
 
         self.navigation.showScreen("menu")
 
-    def createScreen(self):
-        menuScreen = MenuScreen(self.navigation)
-        roomsScreen = RoomsScreen(self.navigation)
-        createRoomScreen = CreateRoomScreen(self.navigation)
+        self.show()
+
+    def createScreens(self):
+        menuScreen = MenuScreen(self.client, self.navigation)
+        roomsScreen = RoomsScreen(self.client, self.communication, self.navigation)
+        createRoomScreen = CreateRoomScreen(self.client, self.communication, self.navigation)
+        gameScreen = GameScreen(self.client, self.communication, self.navigation)
 
         self.navigation.addScreen("menu", menuScreen)
         self.navigation.addScreen("rooms", roomsScreen)
         self.navigation.addScreen("createRoom", createRoomScreen)
+        self.navigation.addScreen("game", gameScreen)
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     mainWindow = MainWindow()
-    mainWindow.show()
     app.exec()
