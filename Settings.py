@@ -10,3 +10,5 @@ DEFAULT_VOLUME = 0.0
 
 HOST = "localhost"
 PORT = 8080
+
+BUFFER_SIZE = 2**16

@@ -1,8 +1,11 @@
 import pickle
 import socket
 import threading
+import time
 
-from Settings import HOST, PORT
+from Settings import HOST, PORT, BUFFER_SIZE
+from gameObjects import Tank
+
 
 class Server:
     def __init__(self, host=HOST, port=PORT):
@@ -10,10 +13,10 @@ class Server:
         self.port = port
 
         self.clients = {}
-        self.clientsLock = threading.Lock()
+        self.clientsLock = threading.RLock()
 
         self.rooms = {}
-        self.roomsLock = threading.Lock()
+        self.roomsLock = threading.RLock()
 
         self.startServer()
 
@@ -28,124 +31,251 @@ class Server:
             print(f"[СЕРВЕР РАБОТАЕТ]: {self.host}:{self.port}")
 
             while True:
-                conn, addr = serverSocket.accept()
-                clientHandler = threading.Thread(target=self.handleClient, args=(conn, addr))
-                clientHandler.start()
+                connection, address = serverSocket.accept()
 
-    def handleClient(self, conn, addr):
-        print(f"[НОВОЕ ПОДКЛЮЧЕНИЕ]: {addr}")
+                clientHandleThread = threading.Thread(target=self.handleClient, args=(connection, address))
+                clientHandleThread.start()
 
-        username = f"User{addr[1]}"
+    def handleClient(self, connection, address):
+        print(f"[НОВОЕ ПОДКЛЮЧЕНИЕ]: {address}")
+
+        username = f"Игрок{address[1]}"
 
         with self.clientsLock:
-            self.clients[conn] = username
+            self.clients[connection] = username
 
         try:
             while True:
-                data = conn.recv(4096)
+                data = connection.recv(BUFFER_SIZE)
                 if not data:
-                    print(f"отключился {addr}")
+                    print(f"отключился {address}")
                     break
 
                 message = pickle.loads(data)
-                self.parseMessage(message, conn)
+                self.parseMessage(message, connection)
+
+        except Exception as e:
+            print(e)
 
         finally:
             with self.clientsLock:
-                if conn in self.clients:
-                    del self.clients[conn]
+                if connection in self.clients:
+                    del self.clients[connection]
 
-            conn.close()
+            # with self.roomsLock:
+            #     for roomName, roomData in self.rooms.items():
+            #         if conn in roomData["players"]:
+            #             roomData["players"].remove(conn)
+            #         if self.clients[conn] in roomData["tanks"]:
+            #             del roomData["tanks"][self.clients[conn]]
+            #         if not roomName:
+            #             del self.rooms[roomName]
 
-    def parseMessage(self, message, conn):
+            connection.close()
+
+    def parseMessage(self, message, connection):
         print(message)
         messageType = message["type"]
-        playerName = self.clients[conn]
+        playerName = self.clients[connection]
 
         if messageType == "get_rooms":
-            self.sendRooms()
+            self.broadcastRooms()
 
         elif messageType == "create_room":
             roomName = message["room_name"]
-            with self.roomsLock:
-                self.rooms[roomName] = [conn]
-
-            print(f"[КОМНАТА]: создана комната {roomName} игроком {playerName}")
-
-            self.sendRooms()
+            self.createRoom(roomName, connection, playerName)
 
         elif messageType == "join_room":
             roomName = message["room_name"]
-
-            with self.roomsLock:
-                if roomName in self.rooms:
-                    self.rooms[roomName].append(conn)
-
-                    print(f"[КОМНАТА]: в {roomName} подключился {playerName}")
+            self.joinRoom(roomName, connection, playerName)
 
         elif messageType == "leave_room":
             roomName = message["room_name"]
-            with self.roomsLock:
-                if roomName in self.rooms and conn in self.rooms[roomName]:
-                    self.rooms[roomName].remove(conn)
-                    print(f"[КОМНАТА]: {playerName} покинул комнату {roomName}")
-
-                if not self.rooms[roomName]:
-                    del self.rooms[roomName]
-                    print(f"[КОМНАТА]: {roomName} была удалена")
+            self.leaveRoom(roomName, connection, playerName)
 
         elif messageType == "get_players":
             roomName = message["room_name"]
-            players = []
-
-            with self.roomsLock and self.clientsLock:
-                for conn in self.rooms[roomName]:
-                    players.append(self.clients[conn])
-
-            message = pickle.dumps({
-                "type": "players",
-                "players": players
-            })
-
-            with self.clientsLock:
-                for client in self.clients:
-                    client.send(message)
+            self.broadcastRoom(roomName)
 
         elif messageType == "send_message":
             text = message["text"]
-            newText = f"[{self.clients[conn]}]: {text}"
             roomName = message["room_name"]
+            self.chat(roomName, playerName, text)
 
-            message = pickle.dumps({
-                "type": "chat",
-                "text": newText
-            })
-
-            room = []
-            with self.roomsLock:
-                room = self.rooms[roomName]
-
-            with self.clientsLock:
-                for client in room:
-                    client.send(message)
+        elif messageType == "player_action":
+            roomName = message["room_name"]
+            action = message["action"]
+            self.handlePlayerAction(roomName, action, playerName)
 
         else:
             print("[ОШИБКА]: неизвестный тип запроса")
 
-    def sendRooms(self):
-        message: bytes
+    def sendMessage(self, message, connection):
+        try:
+            message = pickle.dumps(message)
+            connection.send(message)
+        except Exception as e:
+            print(e)
+
+    def broadcastRooms(self):
+        message: dict
 
         with self.roomsLock:
-            message = pickle.dumps({
+            message = {
                 "type": "rooms",
                 "rooms": list(self.rooms.keys())
-            })
+            }
 
         with self.clientsLock:
             for client in self.clients:
-                client.send(message)
+                self.sendMessage(message, client)
 
-        print("[]: список комнат отправлен всем клиентам")
+        print("[ROOMS]: список комнат отправлен всем клиентам")
+
+    def broadcastRoom(self, roomName):
+        players = []
+
+        with self.roomsLock:
+            for connection in self.rooms[roomName]["players"]:
+                players.append(self.clients[connection])
+
+        message = {
+            "type": "players",
+            "players": players
+        }
+
+        with self.roomsLock:
+            for client in self.rooms[roomName]["players"]:
+                self.sendMessage(message, client)
+
+        print(f"[ROOM]: список участников {roomName} отправлен игрокам этой комнаты")
+
+    def createRoom(self, roomName, connection, playerName):
+        with self.roomsLock:
+            if roomName not in self.rooms:
+                self.rooms[roomName] = {
+                    "players": [connection],
+                    "tanks": {},
+                    "bullets": [],
+                    "gameLoopThread": None
+                }
+                print(f"[КОМНАТА]: создана комната {roomName} игроком {playerName}")
+                self.rooms[roomName]["tanks"][playerName] = Tank(200, 200, 120, playerName)
+                self.broadcastRooms()
+                self.startGameLoopThread(roomName)
+            else:
+                print(f"[ERROR]: комната с именем {roomName} уже существует")
+
+    def joinRoom(self, roomName, connection, playerName):
+        with self.roomsLock:
+            if roomName in self.rooms:
+                self.rooms[roomName]["players"].append(connection)
+                self.rooms[roomName]["tanks"][playerName] = Tank(200, 100, 60, playerName)
+                self.broadcastRoom(roomName)
+                print(f"[КОМНАТА]: в {roomName} подключился {playerName}")
+
+    def leaveRoom(self, roomName, connection, playerName):
+        with self.roomsLock:
+            if roomName in self.rooms:
+                if connection in self.rooms[roomName]["players"]:
+                    self.rooms[roomName]["players"].remove(connection)
+                    self.broadcastRoom(roomName)
+                if playerName in self.rooms[roomName]["players"]:
+                    del self.rooms[roomName]["tanks"][playerName]
+                    self.broadcastRoom(roomName)
+                print(f"[КОМНАТА]: {playerName} покинул комнату {roomName}")
+
+            if not self.rooms[roomName]:
+                del self.rooms[roomName]
+                self.broadcastRooms()
+                print(f"[КОМНАТА]: {roomName} была удалена")
+
+    def chat(self, roomName, playerName, text):
+        newText = f"[{playerName}]: {text}"
+
+        message = {
+            "type": "chat",
+            "text": newText
+        }
+
+        with self.roomsLock:
+            for client in self.rooms[roomName]["players"]:
+                self.sendMessage(message, client)
+
+        print(f"[ЧАТ]: игрок {playerName} отправил в чат {text}")
+
+    def createTank(self):
+        pass
+
+    def handlePlayerAction(self, roomName, action, playerName):
+        with self.roomsLock:
+            tank = self.rooms[roomName]["tanks"][playerName]
+
+            if action == "forward":
+                tank.forward()
+                print(f"[ДВИЖЕНИЕ]: Танк игрока {playerName} едет вперед")
+            elif action == "backward":
+                tank.backward()
+                print(f"[ДВИЖЕНИЕ]: Танк игрока {playerName} едет назад")
+            elif action == "left":
+                tank.left()
+                print(f"[ДВИЖЕНИЕ]: Танк игрока {playerName} поворачивает налево")
+            elif action == "right":
+                tank.right()
+                print(f"[ДВИЖЕНИЕ]: Танк игрока {playerName} поворачивает направо")
+            elif action == "shoot":
+                bullet = tank.shoot()
+                if bullet:
+                    self.rooms[roomName]["bullets"].append(bullet)
+                    print(f"[]: {playerName} совершил выстрел")
+
+    def startGameLoopThread(self, roomName):
+        with self.roomsLock:
+            if roomName in self.rooms:
+                roomData = self.rooms[roomName]
+                if roomData["gameLoopThread"] is None or not roomData["gameLoopThread"].is_alive():
+                    roomData["gameLoopThread"] = threading.Thread(target=self.roomGameLoop, args=(roomName,), daemon=True)
+                    roomData["gameLoopThread"].start()
+
+    def roomGameLoop(self, roomName):
+        while True:
+            with self.roomsLock:
+                if roomName not in self.rooms:
+                    break
+
+                roomData = self.rooms[roomName]
+
+                if not roomData["players"]:
+                    break
+
+                if len(roomData["players"]) > 0:
+                    for bullet in roomData["bullets"]:
+                        bullet.move()
+
+                    for tank in roomData["tanks"].values():
+                        tank.update()
+
+                    game_state = self.get_room_game_state(roomData)
+                    message = pickle.dumps({
+                        "type": "game_state",
+                        "game_state": game_state
+                    })
+
+                    with self.clientsLock:
+                        for conn in roomData["players"]:
+                            if conn in self.clients:
+                                    conn.send(message)
+
+            time.sleep(0.016)
+
+    def get_room_game_state(self, room_data):
+        return {
+            'tanks': room_data["tanks"],
+            'bullets': room_data["bullets"]
+        }
+
+    def checkCollision(self, roomData):
+        pass
 
 if __name__ == '__main__':
     server = Server()

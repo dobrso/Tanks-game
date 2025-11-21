@@ -1,4 +1,7 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QListWidgetItem
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QListWidgetItem, QDialog, \
+    QLineEdit, QDialogButtonBox, QLabel
+
+from Settings import WINDOW_TITLE
 
 
 class RoomsScreen(QWidget):
@@ -26,7 +29,7 @@ class RoomsScreen(QWidget):
         connectButton.clicked.connect(self.joinRoom)
 
         toCreateRoomButton = QPushButton("Создать комнату")
-        toCreateRoomButton.clicked.connect(self.toCreateRoomScreen)
+        toCreateRoomButton.clicked.connect(self.showCreateRoomDialog)
 
         buttonsLayout.addWidget(connectButton)
         buttonsLayout.addWidget(toCreateRoomButton)
@@ -38,9 +41,6 @@ class RoomsScreen(QWidget):
 
     def toMenuScreen(self):
         self.navigation.showScreen("menu")
-
-    def toCreateRoomScreen(self):
-        self.navigation.showScreen("createRoom")
 
     def joinRoom(self):
         selectedRoom = self.roomsList.currentItem()
@@ -73,6 +73,23 @@ class RoomsScreen(QWidget):
         if self.isVisible():
             self.client.sendMessage({"type": "get_rooms"})
 
+    def showCreateRoomDialog(self):
+        dialog = CreateRoomDialog(self)
+
+        if dialog.exec():
+            roomName = dialog.getRoomName()
+            if roomName:
+                self.createRoom(roomName)
+
+    def createRoom(self, roomName):
+        self.client.currentRoom = roomName
+        message = {
+            "type": "create_room",
+            "room_name": roomName
+        }
+        self.client.sendMessage(message)
+        self.navigation.showScreen("game")
+
     def showEvent(self, event):
         super().showEvent(event)
         self.requestRooms()
@@ -80,3 +97,40 @@ class RoomsScreen(QWidget):
     def hideEvent(self, event):
         super().hideEvent(event)
         self.roomsList.clearSelection()
+
+
+class CreateRoomDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(WINDOW_TITLE)
+        self.setModal(True)
+        self.initUI()
+
+    def initUI(self):
+        layout = QVBoxLayout()
+
+        label = QLabel("Название комнаты")
+
+        self.roomNameInput = QLineEdit()
+        self.roomNameInput.setPlaceholderText("Введите название комнаты")
+
+        buttonBox = QDialogButtonBox()
+
+        createButton = QPushButton("Создать")
+        backButton = QPushButton("Назад")
+
+        buttonBox.addButton(createButton, QDialogButtonBox.ButtonRole.AcceptRole)
+        buttonBox.addButton(backButton, QDialogButtonBox.ButtonRole.RejectRole)
+
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+        layout.addWidget(label)
+        layout.addWidget(self.roomNameInput)
+        layout.addWidget(buttonBox)
+
+        self.setLayout(layout)
+
+    def getRoomName(self):
+        roomName = self.roomNameInput.text().strip()
+        return roomName

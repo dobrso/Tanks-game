@@ -2,19 +2,28 @@ import pickle
 import socket
 import threading
 
-from Settings import HOST, PORT
+from Settings import HOST, PORT, BUFFER_SIZE
 
 
 class Client(threading.Thread):
     def __init__(self, communication, host=HOST, port=PORT):
         super().__init__()
         self.communication = communication
+
         self.host = host
         self.port = port
+
+        # TODO
+        # Запрос с сервера на получение имени
+        self.username = None
+
         self.rooms = []
 
         self.currentRoom = None
         self.currentRoomPlayers = []
+
+        self.tanks = {}
+        self.bullets = []
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
@@ -24,7 +33,7 @@ class Client(threading.Thread):
     def run(self):
         while True:
             try:
-                data = self.sock.recv(1024)
+                data = self.sock.recv(BUFFER_SIZE)
                 if not data:
                     break
 
@@ -41,6 +50,15 @@ class Client(threading.Thread):
         except Exception as e:
             print(e)
 
+    def sendMoveAction(self, action):
+        if self.currentRoom:
+            message = {
+                "type": "player_action",
+                "room_name": self.currentRoom,
+                "action": action
+            }
+            self.sendMessage(message)
+
     def parseMessage(self, message):
         messageType = message["type"]
 
@@ -55,3 +73,7 @@ class Client(threading.Thread):
         if messageType == "chat":
             text = message["text"]
             self.communication.chatUpdateSignal.emit(text)
+
+        if messageType == "game_state":
+            self.tanks = message["game_state"]["tanks"]
+            self.bullets = message["game_state"]["bullets"]

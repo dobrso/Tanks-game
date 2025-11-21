@@ -1,15 +1,18 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QWidget, QGridLayout, QPushButton, QLabel, QListWidget, QTextEdit, QLineEdit, \
-    QListWidgetItem, QVBoxLayout
+    QVBoxLayout
+
+from GameField import GameField
+from Settings import MUSIC_PATH
 
 
 class GameScreen(QWidget):
-    def __init__(self, client, communication, navigation):
+    def __init__(self, client, communication, navigation, audioPlayer):
         super().__init__()
         self.client = client
         self.communication = communication
         self.navigation = navigation
+        self.audioPlayer = audioPlayer
 
         self.communication.roomPlayersUpdateSignal.connect(self.updateRoomPlayersList)
         self.communication.chatUpdateSignal.connect(self.updateChat)
@@ -49,14 +52,14 @@ class GameScreen(QWidget):
         self.inputField = QLineEdit()
         self.inputField.returnPressed.connect(self.sendMessageToChat)
 
-        gamefield = QGridLayout()
+        self.gameField = GameField(self.client)
 
         layout.addWidget(leaveButton, 0, 0)
         layout.addWidget(self.roomLabel, 0, 1, 1, 3)
         layout.addLayout(playersLayout, 1, 0)
         layout.addLayout(chatLayout, 2, 0)
         layout.addWidget(self.inputField, 3, 0)
-        layout.addLayout(gamefield, 1, 1, 3, 3)
+        layout.addWidget(self.gameField, 1, 1, 3, 3)
 
         layout.setRowStretch(1, 1)
         layout.setRowStretch(2, 3)
@@ -110,6 +113,10 @@ class GameScreen(QWidget):
         super().showEvent(event)
         self.setRoomLabel()
         self.requestPlayers()
+        self.chatField.clear()
+        self.gameField.setFocus()
+        self.audioPlayer.playMusic(MUSIC_PATH["MATCH"])
 
     def hideEvent(self, event):
         super().hideEvent(event)
+        self.audioPlayer.playMusic(MUSIC_PATH["MENU"])

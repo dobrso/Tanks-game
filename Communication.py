@@ -5,3 +5,4 @@ class Communication(QObject):
     roomsUpdateSignal = pyqtSignal()
     roomPlayersUpdateSignal = pyqtSignal()
     chatUpdateSignal = pyqtSignal(str)
+    gameStateUpdateSignal = pyqtSignal()
