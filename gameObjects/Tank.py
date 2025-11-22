@@ -1,8 +1,10 @@
 import math
+import random
 
 from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QPen, QColor
 
+from Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
 from gameObjects import Bullet
 
 
@@ -15,6 +17,7 @@ class Tank:
         self.width = 30
         self.height = 20
         self.turretLength = 15
+        self.rotationAngle = 3
         self.speed = 3
         self.cooldown = 0
 
@@ -27,16 +30,22 @@ class Tank:
         self.x += self.speed * math.cos(rad)
         self.y += self.speed * math.sin(rad)
 
+        self.x = min(max(0, self.x), GAME_FIELD_WIDTH)
+        self.y = min(max(0, self.y), GAME_FIELD_HEIGHT)
+
     def backward(self):
         rad = math.radians(self.direction)
         self.x -= self.speed * math.cos(rad)
         self.y -= self.speed * math.sin(rad)
 
+        self.x = min(max(0, self.x), GAME_FIELD_WIDTH)
+        self.y = min(max(0, self.y), GAME_FIELD_HEIGHT)
+
     def left(self):
-        self.direction = (self.direction - 5) % 360
+        self.direction = (self.direction - self.rotationAngle) % 360
 
     def right(self):
-        self.direction = (self.direction + 5) % 360
+        self.direction = (self.direction + self.rotationAngle) % 360
 
     def shoot(self):
         if self.cooldown == 0:
@@ -45,6 +54,11 @@ class Tank:
             bulletY = self.y
             bullet = Bullet(bulletX, bulletY, self.direction, self.playerName)
             return bullet
+
+    def respawn(self):
+        self.x = random.randint(0, GAME_FIELD_WIDTH)
+        self.y = random.randint(0, GAME_FIELD_HEIGHT)
+        self.direction = random.randint(0, 361)
 
     def draw(self, painter):
         # Рисуем корпус танка

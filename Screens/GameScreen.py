@@ -1,4 +1,4 @@
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSlot
 from PyQt6.QtWidgets import QWidget, QGridLayout, QPushButton, QLabel, QListWidget, QTextEdit, QLineEdit, \
     QVBoxLayout
 
@@ -52,7 +52,7 @@ class GameScreen(QWidget):
         self.inputField = QLineEdit()
         self.inputField.returnPressed.connect(self.sendMessageToChat)
 
-        self.gameField = GameField(self.client)
+        self.gameField = GameField(self.client, self.communication)
 
         layout.addWidget(leaveButton, 0, 0)
         layout.addWidget(self.roomLabel, 0, 1, 1, 3)
@@ -69,28 +69,19 @@ class GameScreen(QWidget):
 
         self.setLayout(layout)
 
+    @pyqtSlot()
     def leaveRoom(self):
-        roomName = self.client.currentRoom
-        self.client.sendMessage({
-            "type": "leave_room",
-            "room_name": roomName
-        })
+        self.client.leaveRoom()
         self.navigation.showScreen("rooms")
 
-    def requestPlayers(self):
-        if self.isVisible():
-            message = {
-                "type": "get_players",
-                "room_name": self.client.currentRoom
-            }
-            self.client.sendMessage(message)
-
-    def updateRoomPlayersList(self):
+    @pyqtSlot(list)
+    def updateRoomPlayersList(self, newPlayersList):
         self.playersList.clear()
 
-        for player in self.client.currentRoomPlayers:
+        for player in newPlayersList:
             self.playersList.addItem(player)
 
+    @pyqtSlot()
     def sendMessageToChat(self):
         text = self.inputField.text().strip()
         if text:
@@ -102,12 +93,21 @@ class GameScreen(QWidget):
             self.client.sendMessage(message)
         self.inputField.clear()
 
+    @pyqtSlot(str)
     def updateChat(self, text):
         self.chatField.append(text)
 
     def setRoomLabel(self):
         roomName = self.client.currentRoom if self.client.currentRoom else "КАК ТЫ СЮДА ПОПАЛ ВАЩЕ???"
         self.roomLabel.setText(f"КОМНАТА: {roomName}")
+
+    def requestPlayers(self):
+        if self.isVisible():
+            message = {
+                "type": "get_players",
+                "room_name": self.client.currentRoom
+            }
+            self.client.sendMessage(message)
 
     def showEvent(self, event):
         super().showEvent(event)

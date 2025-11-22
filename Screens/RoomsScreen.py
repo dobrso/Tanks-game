@@ -1,3 +1,4 @@
+from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QListWidgetItem, QDialog, \
     QLineEdit, QDialogButtonBox, QLabel
 
@@ -55,13 +56,14 @@ class RoomsScreen(QWidget):
 
             self.navigation.showScreen("game")
 
-    def updateRoomsList(self):
+    @pyqtSlot(list)
+    def updateRoomsList(self, newRoomsList):
         selectedRoom = self.roomsList.currentItem()
         roomName = selectedRoom.text() if selectedRoom else None
 
         self.roomsList.clear()
 
-        for room in self.client.rooms:
+        for room in newRoomsList:
             roomItem = QListWidgetItem(room)
             self.roomsList.addItem(roomItem)
 

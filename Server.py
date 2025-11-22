@@ -1,4 +1,5 @@
 import pickle
+import random
 import socket
 import threading
 import time
@@ -58,18 +59,18 @@ class Server:
             print(e)
 
         finally:
+            with self.roomsLock:
+                for roomName, roomData in self.rooms.items():
+                    if connection in roomData["players"]:
+                        roomData["players"].remove(connection)
+                    if self.clients[connection] in roomData["tanks"]:
+                        del roomData["tanks"][self.clients[connection]]
+                    if not roomName:
+                        del self.rooms[roomName]
+
             with self.clientsLock:
                 if connection in self.clients:
                     del self.clients[connection]
-
-            # with self.roomsLock:
-            #     for roomName, roomData in self.rooms.items():
-            #         if conn in roomData["players"]:
-            #             roomData["players"].remove(conn)
-            #         if self.clients[conn] in roomData["tanks"]:
-            #             del roomData["tanks"][self.clients[conn]]
-            #         if not roomName:
-            #             del self.rooms[roomName]
 
             connection.close()
 
@@ -180,15 +181,15 @@ class Server:
                 if connection in self.rooms[roomName]["players"]:
                     self.rooms[roomName]["players"].remove(connection)
                     self.broadcastRoom(roomName)
-                if playerName in self.rooms[roomName]["players"]:
+                if playerName in self.rooms[roomName]["tanks"]:
                     del self.rooms[roomName]["tanks"][playerName]
                     self.broadcastRoom(roomName)
                 print(f"[КОМНАТА]: {playerName} покинул комнату {roomName}")
 
-            if not self.rooms[roomName]:
-                del self.rooms[roomName]
-                self.broadcastRooms()
-                print(f"[КОМНАТА]: {roomName} была удалена")
+                if not self.rooms[roomName]["players"]:
+                    del self.rooms[roomName]
+                    self.broadcastRooms()
+                    print(f"[КОМНАТА]: {roomName} была удалена")
 
     def chat(self, roomName, playerName, text):
         newText = f"[{playerName}]: {text}"
@@ -204,40 +205,32 @@ class Server:
 
         print(f"[ЧАТ]: игрок {playerName} отправил в чат {text}")
 
-    def createTank(self):
-        pass
-
     def handlePlayerAction(self, roomName, action, playerName):
         with self.roomsLock:
             tank = self.rooms[roomName]["tanks"][playerName]
 
             if action == "forward":
                 tank.forward()
-                print(f"[ДВИЖЕНИЕ]: Танк игрока {playerName} едет вперед")
             elif action == "backward":
                 tank.backward()
-                print(f"[ДВИЖЕНИЕ]: Танк игрока {playerName} едет назад")
             elif action == "left":
                 tank.left()
-                print(f"[ДВИЖЕНИЕ]: Танк игрока {playerName} поворачивает налево")
             elif action == "right":
                 tank.right()
-                print(f"[ДВИЖЕНИЕ]: Танк игрока {playerName} поворачивает направо")
             elif action == "shoot":
                 bullet = tank.shoot()
                 if bullet:
                     self.rooms[roomName]["bullets"].append(bullet)
-                    print(f"[]: {playerName} совершил выстрел")
 
     def startGameLoopThread(self, roomName):
         with self.roomsLock:
             if roomName in self.rooms:
                 roomData = self.rooms[roomName]
                 if roomData["gameLoopThread"] is None or not roomData["gameLoopThread"].is_alive():
-                    roomData["gameLoopThread"] = threading.Thread(target=self.roomGameLoop, args=(roomName,), daemon=True)
+                    roomData["gameLoopThread"] = threading.Thread(target=self.gameLoop, args=(roomName,), daemon=True)
                     roomData["gameLoopThread"].start()
 
-    def roomGameLoop(self, roomName):
+    def gameLoop(self, roomName):
         while True:
             with self.roomsLock:
                 if roomName not in self.rooms:
@@ -249,33 +242,43 @@ class Server:
                     break
 
                 if len(roomData["players"]) > 0:
+
+                    self.checkBulletHit(roomData)
+
                     for bullet in roomData["bullets"]:
-                        bullet.move()
+                        bullet.update()
+                        if bullet.isExpired() or bullet.isOutOfBounds():
+                            roomData["bullets"].remove(bullet)
 
                     for tank in roomData["tanks"].values():
                         tank.update()
 
-                    game_state = self.get_room_game_state(roomData)
-                    message = pickle.dumps({
+                    gameState = {"tanks": roomData["tanks"], "bullets": roomData["bullets"]}
+                    message = {
                         "type": "game_state",
-                        "game_state": game_state
-                    })
+                        "game_state": gameState
+                    }
 
                     with self.clientsLock:
-                        for conn in roomData["players"]:
-                            if conn in self.clients:
-                                    conn.send(message)
+                        for connection in roomData["players"]:
+                            if connection in self.clients:
+                                    self.sendMessage(message, connection)
 
             time.sleep(0.016)
 
-    def get_room_game_state(self, room_data):
-        return {
-            'tanks': room_data["tanks"],
-            'bullets': room_data["bullets"]
-        }
+    def checkBulletHit(self, roomData):
+        for bullet in roomData["bullets"]:
+            for playerName, tank in roomData["tanks"].items():
+                if bullet.playerName == playerName:
+                    continue
 
-    def checkCollision(self, roomData):
-        pass
+                bulletHitbox = bullet.getHitbox()
+                tankHitbox = tank.getHitbox()
+
+                if bulletHitbox.intersects(tankHitbox):
+                    roomData["bullets"].remove(bullet)
+                    tank.respawn()
+
 
 if __name__ == '__main__':
     server = Server()

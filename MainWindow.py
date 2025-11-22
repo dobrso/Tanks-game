@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QApplication
 
 from AudioPlayer import AudioPlayer
 from Client import Client
-from Communication import Communication
+from Signals import Signals
 from Screens import MenuScreen, RoomsScreen, GameScreen, Navigation
 from Settings import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, MUSIC_PATH
 
@@ -13,10 +13,11 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(WINDOW_TITLE)
-        self.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.centerWindow()
 
-        self.communication = Communication()
-        self.client = Client(self.communication)
+        self.signals = Signals()
+        self.client = Client(self.signals)
 
         self.audioPlayer = AudioPlayer()
         self.audioPlayer.playMusic(MUSIC_PATH["MENU"])
@@ -34,12 +35,30 @@ class MainWindow(QMainWindow):
 
     def createScreens(self):
         menuScreen = MenuScreen(self.client, self.navigation)
-        roomsScreen = RoomsScreen(self.client, self.communication, self.navigation)
-        gameScreen = GameScreen(self.client, self.communication, self.navigation, self.audioPlayer)
+        roomsScreen = RoomsScreen(self.client, self.signals, self.navigation)
+        gameScreen = GameScreen(self.client, self.signals, self.navigation, self.audioPlayer)
 
         self.navigation.addScreen("menu", menuScreen)
         self.navigation.addScreen("rooms", roomsScreen)
         self.navigation.addScreen("game", gameScreen)
+
+    def centerWindow(self):
+        """Центрирует окно на экране"""
+        # Получаем геометрию экрана
+        screen = QApplication.primaryScreen()
+        screenGeometry = screen.availableGeometry()
+
+        # Получаем геометрию окна
+        windowGeometry = self.frameGeometry()
+
+        # Вычисляем центр экрана
+        centerPoint = screenGeometry.center()
+
+        # Перемещаем центр окна в центр экрана
+        windowGeometry.moveCenter(centerPoint)
+
+        # Устанавливаем позицию окна
+        self.move(windowGeometry.topLeft())
 
 
 if __name__ == "__main__":

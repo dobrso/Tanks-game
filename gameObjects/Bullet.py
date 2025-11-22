@@ -3,6 +3,8 @@ import math
 from PyQt6.QtCore import QRectF
 from PyQt6.QtGui import QPen, QBrush, QColor
 
+from Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
+
 
 class Bullet:
     def __init__(self, x, y, direction, playerName):
@@ -13,11 +15,21 @@ class Bullet:
         self.speed = 7
         self.width = 5
         self.height = 3
+        self.lifetime = 60
 
-    def move(self):
+    def update(self):
         rad = math.radians(self.direction)
         self.x += self.speed * math.cos(rad)
         self.y += self.speed * math.sin(rad)
+
+        if self.lifetime != 0:
+            self.lifetime -= 1
+
+    def isExpired(self):
+        return self.lifetime == 0
+
+    def isOutOfBounds(self):
+        return 0 > self.x or self.x > GAME_FIELD_WIDTH or 0 > self.y or self.y > GAME_FIELD_HEIGHT
 
     def draw(self, painter):
         painter.setPen(QPen(QColor(0, 255, 0), 2))

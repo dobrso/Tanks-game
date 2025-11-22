@@ -17,13 +17,7 @@ class Client(threading.Thread):
         # Запрос с сервера на получение имени
         self.username = None
 
-        self.rooms = []
-
         self.currentRoom = None
-        self.currentRoomPlayers = []
-
-        self.tanks = {}
-        self.bullets = []
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
@@ -50,7 +44,7 @@ class Client(threading.Thread):
         except Exception as e:
             print(e)
 
-    def sendMoveAction(self, action):
+    def sendAction(self, action):
         if self.currentRoom:
             message = {
                 "type": "player_action",
@@ -63,17 +57,25 @@ class Client(threading.Thread):
         messageType = message["type"]
 
         if messageType == "rooms":
-            self.rooms = message["rooms"]
-            self.communication.roomsUpdateSignal.emit()
+            newRoomsList = message["rooms"]
+            self.communication.roomsUpdateSignal.emit(newRoomsList)
 
         if messageType == "players":
-            self.currentRoomPlayers = message["players"]
-            self.communication.roomPlayersUpdateSignal.emit()
+            newPlayersList = message["players"]
+            self.communication.roomPlayersUpdateSignal.emit(newPlayersList)
 
         if messageType == "chat":
             text = message["text"]
             self.communication.chatUpdateSignal.emit(text)
 
         if messageType == "game_state":
-            self.tanks = message["game_state"]["tanks"]
-            self.bullets = message["game_state"]["bullets"]
+            gameState = message["game_state"]
+            self.communication.gameStateUpdateSignal.emit(gameState)
+
+    def leaveRoom(self):
+        message = {
+            "type": "leave_room",
+            "room_name": self.currentRoom
+        }
+        self.currentRoom = None
+        self.sendMessage(message)

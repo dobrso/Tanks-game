@@ -1,21 +1,32 @@
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QTimer, pyqtSlot
 from PyQt6.QtGui import QPainter, QPen
 from PyQt6.QtWidgets import QWidget
 
-from gameObjects import Tank, Bullet
-
 
 class GameField(QWidget):
-    def __init__(self, client):
+    def __init__(self, client, communication):
         super().__init__()
         self.client = client
+        self.communication = communication
+
+        self.tanks = {}
+        self.bullets = []
         self.pressedKeys = set()
+
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
+        self.communication.gameStateUpdateSignal.connect(self.updateGameState)
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.updateGame)
-        self.timer.start(16)
+        self.timer.setInterval(16)
 
+    @pyqtSlot(dict)
+    def updateGameState(self, gameState):
+        self.tanks = gameState["tanks"]
+        self.bullets = gameState["bullets"]
+
+    @pyqtSlot()
     def updateGame(self):
         self.handleTankInput()
         self.update()
@@ -26,15 +37,15 @@ class GameField(QWidget):
 
         for key in self.pressedKeys:
             if key in ["W", "Ц"]:
-                self.client.sendMoveAction("forward")
+                self.client.sendAction("forward")
             elif key in ["S", "Ы"]:
-                self.client.sendMoveAction("backward")
+                self.client.sendAction("backward")
             elif key in ["A", "Ф"]:
-                self.client.sendMoveAction("left")
+                self.client.sendAction("left")
             elif key in ["D", "В"]:
-                self.client.sendMoveAction("right")
+                self.client.sendAction("right")
             elif key == " ":
-                self.client.sendMoveAction("shoot")
+                self.client.sendAction("shoot")
 
     def keyPressEvent(self, event):
         validKeys = ["W", "S", "A", "D", "Ц", "Ы", "Ф", "В", " "]
@@ -60,11 +71,11 @@ class GameField(QWidget):
         self.drawBullets(painter)
 
     def drawTanks(self, painter):
-        for player, tank in self.client.tanks.items():
+        for player, tank in self.tanks.items():
             tank.draw(painter)
 
     def drawBullets(self, painter):
-        for bullet in self.client.bullets:
+        for bullet in self.bullets:
             bullet.draw(painter)
 
     def drawBorder(self, painter):
@@ -78,3 +89,11 @@ class GameField(QWidget):
         painter.drawRect(rect)
 
         painter.setPen(oldPen)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.timer.start()
+
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        self.timer.stop()
