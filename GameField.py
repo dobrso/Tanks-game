@@ -4,18 +4,18 @@ from PyQt6.QtWidgets import QWidget
 
 
 class GameField(QWidget):
-    def __init__(self, client, communication):
+    def __init__(self, client, signals):
         super().__init__()
         self.client = client
-        self.communication = communication
+        self.signals = signals
 
-        self.tanks = {}
+        self.tanks = []
         self.bullets = []
         self.pressedKeys = set()
 
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
-        self.communication.gameStateUpdateSignal.connect(self.updateGameState)
+        self.signals.gameStateUpdateSignal.connect(self.updateGameState)
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.updateGame)
@@ -44,18 +44,18 @@ class GameField(QWidget):
                 self.client.sendAction("left")
             elif key in ["D", "В"]:
                 self.client.sendAction("right")
-            elif key == " ":
+            elif key == "SPACE":
                 self.client.sendAction("shoot")
 
     def keyPressEvent(self, event):
-        validKeys = ["W", "S", "A", "D", "Ц", "Ы", "Ф", "В", " "]
-        key = event.text().upper()
+        validKeys = ["W", "S", "A", "D", "Ц", "Ы", "Ф", "В", "SPACE"]
+        key = "SPACE" if event.text().upper() == " " else event.text().upper()
 
         if key in validKeys:
             self.pressedKeys.add(key)
 
     def keyReleaseEvent(self, event):
-        key = event.text().upper()
+        key = "SPACE" if event.text().upper() == " " else event.text().upper()
 
         if key in self.pressedKeys:
             self.pressedKeys.remove(key)
@@ -71,7 +71,7 @@ class GameField(QWidget):
         self.drawBullets(painter)
 
     def drawTanks(self, painter):
-        for player, tank in self.tanks.items():
+        for tank in self.tanks:
             tank.draw(painter)
 
     def drawBullets(self, painter):

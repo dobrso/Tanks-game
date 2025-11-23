@@ -9,10 +9,9 @@ class MenuScreen(QWidget):
         self.initUI()
 
     def initUI(self):
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout()
         btn = QPushButton("Играть")
-        btn.clicked.connect(self.toRooms)
+        btn.clicked.connect(lambda: self.navigation.showScreen("rooms"))
         layout.addWidget(btn)
 
-    def toRooms(self):
-        self.navigation.showScreen("rooms")
+        self.setLayout(layout)

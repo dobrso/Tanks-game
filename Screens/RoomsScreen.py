@@ -6,21 +6,21 @@ from Settings import WINDOW_TITLE
 
 
 class RoomsScreen(QWidget):
-    def __init__(self, client, communication, navigation):
+    def __init__(self, client, signals, navigation):
         super().__init__()
         self.client = client
-        self.communication = communication
+        self.signals = signals
         self.navigation = navigation
 
-        self.communication.roomsUpdateSignal.connect(self.updateRoomsList)
+        self.signals.roomsUpdateSignal.connect(self.updateRoomsList)
 
         self.initUI()
 
     def initUI(self):
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout()
 
         toMenuButton = QPushButton("Назад")
-        toMenuButton.clicked.connect(self.toMenuScreen)
+        toMenuButton.clicked.connect(lambda: self.navigation.showScreen("menu"))
 
         self.roomsList = QListWidget()
 
@@ -39,10 +39,9 @@ class RoomsScreen(QWidget):
         layout.addWidget(self.roomsList)
         layout.addLayout(buttonsLayout)
 
+        self.setLayout(layout)
 
-    def toMenuScreen(self):
-        self.navigation.showScreen("menu")
-
+    @pyqtSlot()
     def joinRoom(self):
         selectedRoom = self.roomsList.currentItem()
         if selectedRoom:
@@ -75,6 +74,7 @@ class RoomsScreen(QWidget):
         if self.isVisible():
             self.client.sendMessage({"type": "get_rooms"})
 
+    @pyqtSlot()
     def showCreateRoomDialog(self):
         dialog = CreateRoomDialog(self)
 

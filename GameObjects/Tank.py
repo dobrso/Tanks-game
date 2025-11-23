@@ -5,7 +5,7 @@ from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QPen, QColor
 
 from Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
-from gameObjects import Bullet
+from GameObjects import Bullet
 
 
 class Tank:
@@ -26,17 +26,17 @@ class Tank:
             self.cooldown -= 1
 
     def forward(self):
-        rad = math.radians(self.direction)
-        self.x += self.speed * math.cos(rad)
-        self.y += self.speed * math.sin(rad)
+        radians = math.radians(self.direction)
+        self.x += self.speed * math.cos(radians)
+        self.y += self.speed * math.sin(radians)
 
         self.x = min(max(0, self.x), GAME_FIELD_WIDTH)
         self.y = min(max(0, self.y), GAME_FIELD_HEIGHT)
 
     def backward(self):
-        rad = math.radians(self.direction)
-        self.x -= self.speed * math.cos(rad)
-        self.y -= self.speed * math.sin(rad)
+        radians = math.radians(self.direction)
+        self.x -= self.speed * math.cos(radians)
+        self.y -= self.speed * math.sin(radians)
 
         self.x = min(max(0, self.x), GAME_FIELD_WIDTH)
         self.y = min(max(0, self.y), GAME_FIELD_HEIGHT)

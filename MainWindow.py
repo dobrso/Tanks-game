@@ -43,21 +43,15 @@ class MainWindow(QMainWindow):
         self.navigation.addScreen("game", gameScreen)
 
     def centerWindow(self):
-        """Центрирует окно на экране"""
-        # Получаем геометрию экрана
         screen = QApplication.primaryScreen()
         screenGeometry = screen.availableGeometry()
 
-        # Получаем геометрию окна
         windowGeometry = self.frameGeometry()
 
-        # Вычисляем центр экрана
         centerPoint = screenGeometry.center()
 
-        # Перемещаем центр окна в центр экрана
         windowGeometry.moveCenter(centerPoint)
 
-        # Устанавливаем позицию окна
         self.move(windowGeometry.topLeft())
 
 

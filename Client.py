@@ -6,9 +6,9 @@ from Settings import HOST, PORT, BUFFER_SIZE
 
 
 class Client(threading.Thread):
-    def __init__(self, communication, host=HOST, port=PORT):
+    def __init__(self, signals, host=HOST, port=PORT):
         super().__init__()
-        self.communication = communication
+        self.signals = signals
 
         self.host = host
         self.port = port
@@ -34,8 +34,17 @@ class Client(threading.Thread):
                 message = pickle.loads(data)
                 self.parseMessage(message)
 
+            except Exception as e:
+                print(e)
+
             finally:
                 pass
+
+    def connect(self):
+        pass
+
+    def disconnect(self):
+        pass
 
     def sendMessage(self, message):
         try:
@@ -58,19 +67,19 @@ class Client(threading.Thread):
 
         if messageType == "rooms":
             newRoomsList = message["rooms"]
-            self.communication.roomsUpdateSignal.emit(newRoomsList)
+            self.signals.roomsUpdateSignal.emit(newRoomsList)
 
         if messageType == "players":
             newPlayersList = message["players"]
-            self.communication.roomPlayersUpdateSignal.emit(newPlayersList)
+            self.signals.roomPlayersUpdateSignal.emit(newPlayersList)
 
         if messageType == "chat":
             text = message["text"]
-            self.communication.chatUpdateSignal.emit(text)
+            self.signals.chatUpdateSignal.emit(text)
 
         if messageType == "game_state":
-            gameState = message["game_state"]
-            self.communication.gameStateUpdateSignal.emit(gameState)
+            newGameState = message["game_state"]
+            self.signals.gameStateUpdateSignal.emit(newGameState)
 
     def leaveRoom(self):
         message = {

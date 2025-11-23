@@ -5,7 +5,7 @@ import threading
 import time
 
 from Settings import HOST, PORT, BUFFER_SIZE
-from gameObjects import Tank
+from GameObjects import Tank
 
 
 class Server:
@@ -253,7 +253,7 @@ class Server:
                     for tank in roomData["tanks"].values():
                         tank.update()
 
-                    gameState = {"tanks": roomData["tanks"], "bullets": roomData["bullets"]}
+                    gameState = {"tanks": list(roomData["tanks"].values()), "bullets": roomData["bullets"]}
                     message = {
                         "type": "game_state",
                         "game_state": gameState

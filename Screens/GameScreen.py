@@ -7,15 +7,15 @@ from Settings import MUSIC_PATH
 
 
 class GameScreen(QWidget):
-    def __init__(self, client, communication, navigation, audioPlayer):
+    def __init__(self, client, signals, navigation, audioPlayer):
         super().__init__()
         self.client = client
-        self.communication = communication
+        self.signals = signals
         self.navigation = navigation
         self.audioPlayer = audioPlayer
 
-        self.communication.roomPlayersUpdateSignal.connect(self.updateRoomPlayersList)
-        self.communication.chatUpdateSignal.connect(self.updateChat)
+        self.signals.roomPlayersUpdateSignal.connect(self.updateRoomPlayersList)
+        self.signals.chatUpdateSignal.connect(self.updateChat)
 
         self.initUI()
 
@@ -52,7 +52,7 @@ class GameScreen(QWidget):
         self.inputField = QLineEdit()
         self.inputField.returnPressed.connect(self.sendMessageToChat)
 
-        self.gameField = GameField(self.client, self.communication)
+        self.gameField = GameField(self.client, self.signals)
 
         layout.addWidget(leaveButton, 0, 0)
         layout.addWidget(self.roomLabel, 0, 1, 1, 3)

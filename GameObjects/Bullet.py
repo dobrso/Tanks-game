@@ -15,12 +15,12 @@ class Bullet:
         self.speed = 7
         self.width = 5
         self.height = 3
-        self.lifetime = 60
+        self.lifetime = 50
 
     def update(self):
-        rad = math.radians(self.direction)
-        self.x += self.speed * math.cos(rad)
-        self.y += self.speed * math.sin(rad)
+        radians = math.radians(self.direction)
+        self.x += self.speed * math.cos(radians)
+        self.y += self.speed * math.sin(radians)
 
         if self.lifetime != 0:
             self.lifetime -= 1
