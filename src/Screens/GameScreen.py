@@ -2,8 +2,8 @@ from PyQt6.QtCore import Qt, pyqtSlot
 from PyQt6.QtWidgets import QWidget, QGridLayout, QPushButton, QLabel, QListWidget, QTextEdit, QLineEdit, \
     QVBoxLayout
 
-from GameField import GameField
-from Settings import MUSIC_PATH
+from src.GameObjects.GameField import GameField
+from src.Utilities.Settings import MUSIC_PATH
 
 
 class GameScreen(QWidget):
@@ -85,13 +85,9 @@ class GameScreen(QWidget):
     def sendMessageToChat(self):
         text = self.inputField.text().strip()
         if text:
-            message = {
-                "type": "send_message",
-                "text": text,
-                "room_name": self.client.currentRoom
-            }
-            self.client.sendMessage(message)
+            self.client.sendMessageToChat(text)
         self.inputField.clear()
+        self.gameField.setFocus()
 
     @pyqtSlot(str)
     def updateChat(self, text):

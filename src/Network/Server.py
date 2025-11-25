@@ -1,11 +1,10 @@
 import pickle
-import random
 import socket
 import threading
 import time
 
-from Settings import HOST, PORT, BUFFER_SIZE
-from GameObjects import Tank
+from src.Utilities.Settings import HOST, PORT, BUFFER_SIZE
+from src.GameObjects.Tank import Tank
 
 
 class Server:
@@ -19,8 +18,6 @@ class Server:
         self.rooms = {}
         self.roomsLock = threading.RLock()
 
-        self.startServer()
-
     def startServer(self):
         serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -29,7 +26,7 @@ class Server:
             serverSocket.bind((self.host, self.port))
             serverSocket.listen()
 
-            print(f"[СЕРВЕР РАБОТАЕТ]: {self.host}:{self.port}")
+            print(f"[СЕРВЕР]: {self.host}:{self.port}")
 
             while True:
                 connection, address = serverSocket.accept()
@@ -53,7 +50,7 @@ class Server:
                     break
 
                 message = pickle.loads(data)
-                self.parseMessage(message, connection)
+                self.handleMessage(message, connection)
 
         except Exception as e:
             print(e)
@@ -74,8 +71,7 @@ class Server:
 
             connection.close()
 
-    def parseMessage(self, message, connection):
-        print(message)
+    def handleMessage(self, message, connection):
         messageType = message["type"]
         playerName = self.clients[connection]
 
@@ -128,7 +124,7 @@ class Server:
             }
 
         with self.clientsLock:
-            for client in self.clients:
+            for client in list(self.clients.keys()):
                 self.sendMessage(message, client)
 
         print("[ROOMS]: список комнат отправлен всем клиентам")
@@ -225,10 +221,10 @@ class Server:
     def startGameLoopThread(self, roomName):
         with self.roomsLock:
             if roomName in self.rooms:
-                roomData = self.rooms[roomName]
-                if roomData["gameLoopThread"] is None or not roomData["gameLoopThread"].is_alive():
-                    roomData["gameLoopThread"] = threading.Thread(target=self.gameLoop, args=(roomName,), daemon=True)
-                    roomData["gameLoopThread"].start()
+                roomThread = self.rooms[roomName]["gameLoopThread"]
+                if roomThread is None or not roomThread.is_alive():
+                    roomThread = threading.Thread(target=self.gameLoop, args=(roomName, ), daemon=True)
+                    roomThread.start()
 
     def gameLoop(self, roomName):
         while True:
@@ -241,28 +237,26 @@ class Server:
                 if not roomData["players"]:
                     break
 
-                if len(roomData["players"]) > 0:
+                self.checkBulletHit(roomData)
 
-                    self.checkBulletHit(roomData)
+                for bullet in roomData["bullets"]:
+                    bullet.update()
+                    if bullet.isExpired() or bullet.isOutOfBounds():
+                        roomData["bullets"].remove(bullet)
 
-                    for bullet in roomData["bullets"]:
-                        bullet.update()
-                        if bullet.isExpired() or bullet.isOutOfBounds():
-                            roomData["bullets"].remove(bullet)
+                for tank in roomData["tanks"].values():
+                    tank.update()
 
-                    for tank in roomData["tanks"].values():
-                        tank.update()
+                gameState = {"tanks": list(roomData["tanks"].values()), "bullets": roomData["bullets"]}
+                message = {
+                    "type": "game_state",
+                    "game_state": gameState
+                }
 
-                    gameState = {"tanks": list(roomData["tanks"].values()), "bullets": roomData["bullets"]}
-                    message = {
-                        "type": "game_state",
-                        "game_state": gameState
-                    }
-
-                    with self.clientsLock:
-                        for connection in roomData["players"]:
-                            if connection in self.clients:
-                                    self.sendMessage(message, connection)
+                with self.clientsLock:
+                    for connection in roomData["players"]:
+                        if connection in self.clients:
+                                self.sendMessage(message, connection)
 
             time.sleep(0.016)
 
@@ -278,7 +272,3 @@ class Server:
                 if bulletHitbox.intersects(tankHitbox):
                     roomData["bullets"].remove(bullet)
                     tank.respawn()
-
-
-if __name__ == '__main__':
-    server = Server()

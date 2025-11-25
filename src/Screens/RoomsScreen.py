@@ -2,7 +2,7 @@ from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QListWidgetItem, QDialog, \
     QLineEdit, QDialogButtonBox, QLabel
 
-from Settings import WINDOW_TITLE
+from src.Utilities.Settings import WINDOW_TITLE
 
 
 class RoomsScreen(QWidget):
@@ -20,9 +20,10 @@ class RoomsScreen(QWidget):
         layout = QVBoxLayout()
 
         toMenuButton = QPushButton("Назад")
-        toMenuButton.clicked.connect(lambda: self.navigation.showScreen("menu"))
+        toMenuButton.clicked.connect(self.toMenuScreen)
 
         self.roomsList = QListWidget()
+        self.roomsList.doubleClicked.connect(self.joinRoom)
 
         buttonsLayout = QHBoxLayout()
 
@@ -42,17 +43,15 @@ class RoomsScreen(QWidget):
         self.setLayout(layout)
 
     @pyqtSlot()
+    def toMenuScreen(self):
+        self.navigation.showScreen("menu")
+
+    @pyqtSlot()
     def joinRoom(self):
         selectedRoom = self.roomsList.currentItem()
         if selectedRoom:
             roomName = selectedRoom.text()
-            self.client.currentRoom = roomName
-            message = {
-                "type": "join_room",
-                "room_name": roomName
-            }
-            self.client.sendMessage(message)
-
+            self.client.joinRoom(roomName)
             self.navigation.showScreen("game")
 
     @pyqtSlot(list)
@@ -72,7 +71,7 @@ class RoomsScreen(QWidget):
 
     def requestRooms(self):
         if self.isVisible():
-            self.client.sendMessage({"type": "get_rooms"})
+            self.client.requestRooms()
 
     @pyqtSlot()
     def showCreateRoomDialog(self):
@@ -81,16 +80,8 @@ class RoomsScreen(QWidget):
         if dialog.exec():
             roomName = dialog.getRoomName()
             if roomName:
-                self.createRoom(roomName)
-
-    def createRoom(self, roomName):
-        self.client.currentRoom = roomName
-        message = {
-            "type": "create_room",
-            "room_name": roomName
-        }
-        self.client.sendMessage(message)
-        self.navigation.showScreen("game")
+                self.client.createRoom(roomName)
+                self.navigation.showScreen("game")
 
     def showEvent(self, event):
         super().showEvent(event)

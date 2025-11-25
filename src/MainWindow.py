@@ -1,12 +1,13 @@
-import sys
-
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QApplication
 
-from AudioPlayer import AudioPlayer
-from Client import Client
-from Signals import Signals
-from Screens import MenuScreen, RoomsScreen, GameScreen, Navigation
-from Settings import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, MUSIC_PATH
+from src.Screens.GameScreen import GameScreen
+from src.Screens.MenuScreen import MenuScreen
+from src.Screens.Navigation import Navigation
+from src.Screens.RoomsScreen import RoomsScreen
+from src.Utilities.AudioPlayer import AudioPlayer
+from src.Network.Client import Client
+from src.Utilities.Signals import Signals
+from src.Utilities.Settings import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, MUSIC_PATH
 
 
 class MainWindow(QMainWindow):
@@ -31,8 +32,6 @@ class MainWindow(QMainWindow):
 
         self.navigation.showScreen("menu")
 
-        self.show()
-
     def createScreens(self):
         menuScreen = MenuScreen(self.client, self.navigation)
         roomsScreen = RoomsScreen(self.client, self.signals, self.navigation)
@@ -54,8 +53,6 @@ class MainWindow(QMainWindow):
 
         self.move(windowGeometry.topLeft())
 
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    mainWindow = MainWindow()
-    app.exec()
+    def closeEvent(self, event):
+        super().closeEvent(event)
+        self.client.disconnect()

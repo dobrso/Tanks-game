@@ -3,7 +3,7 @@ import os
 from PyQt6.QtCore import QUrl
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 
-from Settings import DEFAULT_VOLUME
+from src.Utilities.Settings import DEFAULT_VOLUME
 
 
 class AudioPlayer(QMediaPlayer):

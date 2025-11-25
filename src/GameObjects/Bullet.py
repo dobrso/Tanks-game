@@ -3,7 +3,7 @@ import math
 from PyQt6.QtCore import QRectF
 from PyQt6.QtGui import QPen, QBrush, QColor
 
-from Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
+from src.Utilities.Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
 
 
 class Bullet:

@@ -3,11 +3,11 @@
 
 1. Для начала склонируйте репозиторий с игрой:
 ``
-git clone link
+git clone https://github.com/dobrso/Tanks-game.git
 ``
 2. Создайте виртуальное окружение: 
 ``
-venv venv
+py -m venv venv
 ``
 3. Запустите виртуальное окружение
 ``
@@ -18,3 +18,5 @@ venv/Scripts/Activate.ps1
 pip install requirements.txt
 ``
 5. Запустите сервер (на одном устройстве Server.py) и клиента (можете поиграть с другом по локальной сети)
+
+# W.I.P.

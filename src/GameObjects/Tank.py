@@ -4,8 +4,8 @@ import random
 from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QPen, QColor
 
-from Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
-from GameObjects import Bullet
+from src.GameObjects.Bullet import Bullet
+from src.Utilities.Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
 
 
 class Tank:
@@ -14,6 +14,7 @@ class Tank:
         self.y = y
         self.direction = direction
         self.playerName = playerName
+
         self.width = 30
         self.height = 20
         self.turretLength = 15
@@ -58,7 +59,7 @@ class Tank:
     def respawn(self):
         self.x = random.randint(0, GAME_FIELD_WIDTH)
         self.y = random.randint(0, GAME_FIELD_HEIGHT)
-        self.direction = random.randint(0, 361)
+        self.direction = random.randint(0, 360)
 
     def draw(self, painter):
         # Рисуем корпус танка
