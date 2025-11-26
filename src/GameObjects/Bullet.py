@@ -1,7 +1,6 @@
 import math
 
 from PyQt6.QtCore import QRectF
-from PyQt6.QtGui import QPen, QBrush, QColor
 
 from src.Utilities.Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
 
@@ -12,10 +11,12 @@ class Bullet:
         self.y = y
         self.direction = direction
         self.playerName = playerName
+
+        self.width = 80
+        self.height = 80
+
         self.speed = 7
-        self.width = 5
-        self.height = 3
-        self.lifetime = 50
+        self.lifetime = 60
 
     def update(self):
         radians = math.radians(self.direction)
@@ -29,14 +30,11 @@ class Bullet:
         return self.lifetime == 0
 
     def isOutOfBounds(self):
-        return 0 > self.x or self.x > GAME_FIELD_WIDTH or 0 > self.y or self.y > GAME_FIELD_HEIGHT
-
-    def draw(self, painter):
-        painter.setPen(QPen(QColor(0, 255, 0), 2))
-        painter.setBrush(QBrush(QColor(0, 255, 0)))
-        painter.drawEllipse(int(self.x - self.width // 2), int(self.y - self.height // 2),
-                            self.width, self.height)
+        return (self.x < 0 or self.x > GAME_FIELD_WIDTH or
+                self.y < 0 or self.y > GAME_FIELD_HEIGHT)
 
     def getHitbox(self):
-        hitbox = QRectF(self.x - self.width // 2, self.y - self.height // 2, self.width, self.height)
+        hitboxWidth = self.width // 4
+        hitboxHeight = self.height // 4
+        hitbox = QRectF(self.x - hitboxWidth // 2, self.y - hitboxHeight // 2, hitboxWidth, hitboxHeight)
         return hitbox

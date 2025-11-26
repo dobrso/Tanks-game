@@ -2,12 +2,18 @@ from PyQt6.QtCore import Qt, QTimer, pyqtSlot
 from PyQt6.QtGui import QPainter, QPen
 from PyQt6.QtWidgets import QWidget
 
+from src.Drawers.BulletDrawer import BulletDrawer
+from src.Drawers.TankDrawer import TankDrawer
+
 
 class GameField(QWidget):
     def __init__(self, client, signals):
         super().__init__()
         self.client = client
         self.signals = signals
+
+        self.tankDrawer = TankDrawer()
+        self.bulletDrawer = BulletDrawer()
 
         self.tanks = []
         self.bullets = []
@@ -49,13 +55,13 @@ class GameField(QWidget):
 
     def keyPressEvent(self, event):
         validKeys = ["W", "S", "A", "D", "Ц", "Ы", "Ф", "В", "SPACE"]
-        key = "SPACE" if event.text().upper() == " " else event.text().upper()
+        key = "SPACE" if event.text() == " " else event.text().upper()
 
         if key in validKeys:
             self.pressedKeys.add(key)
 
     def keyReleaseEvent(self, event):
-        key = "SPACE" if event.text().upper() == " " else event.text().upper()
+        key = "SPACE" if event.text() == " " else event.text().upper()
 
         if key in self.pressedKeys:
             self.pressedKeys.remove(key)
@@ -72,11 +78,11 @@ class GameField(QWidget):
 
     def drawTanks(self, painter):
         for tank in self.tanks:
-            tank.draw(painter)
+            self.tankDrawer.draw(painter, tank)
 
     def drawBullets(self, painter):
         for bullet in self.bullets:
-            bullet.draw(painter)
+            self.bulletDrawer.draw(painter, bullet)
 
     def drawBorder(self, painter):
         oldPen = painter.pen()

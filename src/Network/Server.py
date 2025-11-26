@@ -1,9 +1,11 @@
+import datetime
 import pickle
+import random
 import socket
 import threading
 import time
 
-from src.Utilities.Settings import HOST, PORT, BUFFER_SIZE
+from src.Utilities.Settings import HOST, PORT, BUFFER_SIZE, GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
 from src.GameObjects.Tank import Tank
 
 
@@ -157,7 +159,7 @@ class Server:
                     "gameLoopThread": None
                 }
                 print(f"[КОМНАТА]: создана комната {roomName} игроком {playerName}")
-                self.rooms[roomName]["tanks"][playerName] = Tank(200, 200, 120, playerName)
+                self.rooms[roomName]["tanks"][playerName] = self.createTank(playerName)
                 self.broadcastRooms()
                 self.startGameLoopThread(roomName)
             else:
@@ -167,7 +169,7 @@ class Server:
         with self.roomsLock:
             if roomName in self.rooms:
                 self.rooms[roomName]["players"].append(connection)
-                self.rooms[roomName]["tanks"][playerName] = Tank(200, 100, 60, playerName)
+                self.rooms[roomName]["tanks"][playerName] = self.createTank(playerName)
                 self.broadcastRoom(roomName)
                 print(f"[КОМНАТА]: в {roomName} подключился {playerName}")
 
@@ -188,7 +190,8 @@ class Server:
                     print(f"[КОМНАТА]: {roomName} была удалена")
 
     def chat(self, roomName, playerName, text):
-        newText = f"[{playerName}]: {text}"
+        currentTime = datetime.datetime.now().strftime("%H:%M")
+        newText = f"[{currentTime}] [{playerName}]: {text}"
 
         message = {
             "type": "chat",
@@ -200,23 +203,6 @@ class Server:
                 self.sendMessage(message, client)
 
         print(f"[ЧАТ]: игрок {playerName} отправил в чат {text}")
-
-    def handlePlayerAction(self, roomName, action, playerName):
-        with self.roomsLock:
-            tank = self.rooms[roomName]["tanks"][playerName]
-
-            if action == "forward":
-                tank.forward()
-            elif action == "backward":
-                tank.backward()
-            elif action == "left":
-                tank.left()
-            elif action == "right":
-                tank.right()
-            elif action == "shoot":
-                bullet = tank.shoot()
-                if bullet:
-                    self.rooms[roomName]["bullets"].append(bullet)
 
     def startGameLoopThread(self, roomName):
         with self.roomsLock:
@@ -237,9 +223,8 @@ class Server:
                 if not roomData["players"]:
                     break
 
-                self.checkBulletHit(roomData)
-
                 for bullet in roomData["bullets"]:
+                    self.checkBulletHit(bullet, roomData)
                     bullet.update()
                     if bullet.isExpired() or bullet.isOutOfBounds():
                         roomData["bullets"].remove(bullet)
@@ -256,19 +241,44 @@ class Server:
                 with self.clientsLock:
                     for connection in roomData["players"]:
                         if connection in self.clients:
-                                self.sendMessage(message, connection)
+                            self.sendMessage(message, connection)
 
             time.sleep(0.016)
 
-    def checkBulletHit(self, roomData):
-        for bullet in roomData["bullets"]:
-            for playerName, tank in roomData["tanks"].items():
-                if bullet.playerName == playerName:
-                    continue
+    def createTank(self, playerName):
+        tank = Tank(
+            random.randint(0, GAME_FIELD_WIDTH),
+            random.randint(0, GAME_FIELD_HEIGHT),
+            random.randint(0, 360),
+            playerName
+        )
+        return tank
 
-                bulletHitbox = bullet.getHitbox()
-                tankHitbox = tank.getHitbox()
+    def handlePlayerAction(self, roomName, action, playerName):
+        with self.roomsLock:
+            tank = self.rooms[roomName]["tanks"][playerName]
 
-                if bulletHitbox.intersects(tankHitbox):
-                    roomData["bullets"].remove(bullet)
-                    tank.respawn()
+            if action == "forward":
+                tank.forward()
+            elif action == "backward":
+                tank.backward()
+            elif action == "left":
+                tank.left()
+            elif action == "right":
+                tank.right()
+            elif action == "shoot":
+                bullet = tank.shoot()
+                if bullet:
+                    self.rooms[roomName]["bullets"].append(bullet)
+
+    def checkBulletHit(self, bullet, roomData):
+        for playerName, tank in roomData["tanks"].items():
+            if bullet.playerName == playerName:
+                continue
+
+            bulletHitbox = bullet.getHitbox()
+            tankHitbox = tank.getHitbox()
+
+            if bulletHitbox.intersects(tankHitbox):
+                roomData["bullets"].remove(bullet)
+                tank.respawn()

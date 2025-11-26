@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
     def createScreens(self):
         menuScreen = MenuScreen(self.client, self.navigation)
         roomsScreen = RoomsScreen(self.client, self.signals, self.navigation)
-        gameScreen = GameScreen(self.client, self.signals, self.navigation, self.audioPlayer)
+        gameScreen = GameScreen(self.client, self.signals, self.navigation)
 
         self.navigation.addScreen("menu", menuScreen)
         self.navigation.addScreen("rooms", roomsScreen)

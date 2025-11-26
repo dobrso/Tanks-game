@@ -1,8 +1,7 @@
 import math
 import random
 
-from PyQt6.QtCore import QRectF, Qt
-from PyQt6.QtGui import QPen, QColor
+from PyQt6.QtCore import QRectF
 
 from src.GameObjects.Bullet import Bullet
 from src.Utilities.Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
@@ -15,9 +14,12 @@ class Tank:
         self.direction = direction
         self.playerName = playerName
 
-        self.width = 30
-        self.height = 20
-        self.turretLength = 15
+        self.width = 60
+        self.height = 70
+
+        self.turretLength = 50
+        self.bulletOffset = 10
+
         self.rotationAngle = 3
         self.speed = 3
         self.cooldown = 0
@@ -31,16 +33,16 @@ class Tank:
         self.x += self.speed * math.cos(radians)
         self.y += self.speed * math.sin(radians)
 
-        self.x = min(max(0, self.x), GAME_FIELD_WIDTH)
-        self.y = min(max(0, self.y), GAME_FIELD_HEIGHT)
+        self.x = min(max(self.width // 2, self.x), GAME_FIELD_WIDTH - self.width // 2)
+        self.y = min(max(self.height // 2, self.y), GAME_FIELD_HEIGHT - self.height // 2)
 
     def backward(self):
         radians = math.radians(self.direction)
         self.x -= self.speed * math.cos(radians)
         self.y -= self.speed * math.sin(radians)
 
-        self.x = min(max(0, self.x), GAME_FIELD_WIDTH)
-        self.y = min(max(0, self.y), GAME_FIELD_HEIGHT)
+        self.x = min(max(self.width // 2, self.x), GAME_FIELD_WIDTH - self.width // 2)
+        self.y = min(max(self.height // 2, self.y), GAME_FIELD_HEIGHT - self.height // 2)
 
     def left(self):
         self.direction = (self.direction - self.rotationAngle) % 360
@@ -51,30 +53,16 @@ class Tank:
     def shoot(self):
         if self.cooldown == 0:
             self.cooldown = 60
-            bulletX = self.x
-            bulletY = self.y
+            radians = math.radians(self.direction)
+            bulletX = self.x + (self.turretLength - self.bulletOffset) * math.cos(radians)
+            bulletY = self.y + (self.turretLength - self.bulletOffset) * math.sin(radians)
             bullet = Bullet(bulletX, bulletY, self.direction, self.playerName)
             return bullet
 
     def respawn(self):
-        self.x = random.randint(0, GAME_FIELD_WIDTH)
-        self.y = random.randint(0, GAME_FIELD_HEIGHT)
+        self.x = random.randint(self.width // 2, GAME_FIELD_WIDTH - self.width // 2)
+        self.y = random.randint(self.height // 2, GAME_FIELD_HEIGHT - self.height // 2)
         self.direction = random.randint(0, 360)
-
-    def draw(self, painter):
-        # Рисуем корпус танка
-        painter.setPen(QPen(Qt.GlobalColor.red, 2))
-        painter.setBrush(QColor(200, 200, 200))
-
-        # Рисуем прямоугольник корпуса
-        painter.save()
-        painter.translate(self.x, self.y)
-        painter.rotate(self.direction)
-        painter.drawRect(-self.width // 2, -self.height // 2, self.width, self.height)
-
-        # Рисуем башню
-        painter.drawLine(0, 0, self.turretLength, 0)
-        painter.restore()
 
     def getHitbox(self):
         hitbox = QRectF(self.x - self.width // 2, self.y - self.height // 2, self.width, self.height)

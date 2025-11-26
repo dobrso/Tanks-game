@@ -3,16 +3,14 @@ from PyQt6.QtWidgets import QWidget, QGridLayout, QPushButton, QLabel, QListWidg
     QVBoxLayout
 
 from src.GameObjects.GameField import GameField
-from src.Utilities.Settings import MUSIC_PATH
 
 
 class GameScreen(QWidget):
-    def __init__(self, client, signals, navigation, audioPlayer):
+    def __init__(self, client, signals, navigation):
         super().__init__()
         self.client = client
         self.signals = signals
         self.navigation = navigation
-        self.audioPlayer = audioPlayer
 
         self.signals.roomPlayersUpdateSignal.connect(self.updateRoomPlayersList)
         self.signals.chatUpdateSignal.connect(self.updateChat)
@@ -111,8 +109,6 @@ class GameScreen(QWidget):
         self.requestPlayers()
         self.chatField.clear()
         self.gameField.setFocus()
-        self.audioPlayer.playMusic(MUSIC_PATH["MATCH"])
 
     def hideEvent(self, event):
         super().hideEvent(event)
-        self.audioPlayer.playMusic(MUSIC_PATH["MENU"])

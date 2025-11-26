@@ -14,9 +14,7 @@ class AudioPlayer(QMediaPlayer):
 
         self.setAudioOutput(self.audioOutput)
 
-    def playMusic(self, filepath: str):
-        self.stop()
-
+    def playMusic(self, filepath):
         if os.path.exists(filepath):
             self.setSource(QUrl.fromLocalFile(filepath))
             self.setLoops(QMediaPlayer.Loops.Infinite)
