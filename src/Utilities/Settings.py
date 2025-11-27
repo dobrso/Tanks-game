@@ -32,3 +32,7 @@ TANK_HULL_PATH = [
 BULLET_PATH = [
     "assets/textures/bullets/bullet_medium.png",
 ]
+
+BACKGROUND_PATH = [
+    "assets/textures/backgrounds/background.png",
+]

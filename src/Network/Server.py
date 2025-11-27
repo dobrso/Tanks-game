@@ -247,8 +247,8 @@ class Server:
 
     def createTank(self, playerName):
         tank = Tank(
-            random.randint(0, GAME_FIELD_WIDTH),
-            random.randint(0, GAME_FIELD_HEIGHT),
+            random.randint(100, GAME_FIELD_WIDTH),
+            random.randint(100, GAME_FIELD_HEIGHT),
             random.randint(0, 360),
             playerName
         )

@@ -1,9 +1,12 @@
+from PIL.ImageQt import QPixmap
 from PyQt6.QtCore import Qt, QTimer, pyqtSlot
 from PyQt6.QtGui import QPainter, QPen
 from PyQt6.QtWidgets import QWidget
 
 from src.Drawers.BulletDrawer import BulletDrawer
+from src.Drawers.GameFieldDrawer import GameFieldDrawer
 from src.Drawers.TankDrawer import TankDrawer
+from src.Utilities.Settings import BACKGROUND_PATH
 
 
 class GameField(QWidget):
@@ -14,10 +17,13 @@ class GameField(QWidget):
 
         self.tankDrawer = TankDrawer()
         self.bulletDrawer = BulletDrawer()
+        self.gameFieldDrawer = GameFieldDrawer()
 
         self.tanks = []
         self.bullets = []
         self.pressedKeys = set()
+
+        self.background = QPixmap(BACKGROUND_PATH[0])
 
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
@@ -70,31 +76,13 @@ class GameField(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        painter.fillRect(self.rect(), Qt.GlobalColor.white)
-        self.drawBorder(painter)
+        self.gameFieldDrawer.draw(painter, self.rect())
 
-        self.drawTanks(painter)
-        self.drawBullets(painter)
-
-    def drawTanks(self, painter):
         for tank in self.tanks:
             self.tankDrawer.draw(painter, tank)
 
-    def drawBullets(self, painter):
         for bullet in self.bullets:
             self.bulletDrawer.draw(painter, bullet)
-
-    def drawBorder(self, painter):
-        oldPen = painter.pen()
-
-        borderPen = QPen(Qt.GlobalColor.black)
-        borderPen.setWidth(3)
-        painter.setPen(borderPen)
-
-        rect = self.rect()
-        painter.drawRect(rect)
-
-        painter.setPen(oldPen)
 
     def showEvent(self, event):
         super().showEvent(event)
