@@ -6,11 +6,12 @@ from src.GameObjects.GameField import GameField
 
 
 class GameScreen(QWidget):
-    def __init__(self, client, signals, navigation):
+    def __init__(self, client, signals, navigation, audioPlayer):
         super().__init__()
         self.client = client
         self.signals = signals
         self.navigation = navigation
+        self.audioPlayer = audioPlayer
 
         self.signals.roomPlayersUpdateSignal.connect(self.updateRoomPlayersList)
         self.signals.chatUpdateSignal.connect(self.updateChat)
@@ -20,7 +21,7 @@ class GameScreen(QWidget):
     def initUI(self):
         layout = QGridLayout()
 
-        leaveButton = QPushButton("Выйти")
+        leaveButton = QPushButton("Выйти в Лобби")
         leaveButton.clicked.connect(self.leaveRoom)
 
         self.roomLabel = QLabel()
@@ -31,7 +32,8 @@ class GameScreen(QWidget):
         playersLabel = QLabel("ИГРОКИ")
         playersLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.playersList = QListWidget()
+        self.playersList = QTextEdit()
+        self.playersList.setReadOnly(True)
 
         playersLayout.addWidget(playersLabel)
         playersLayout.addWidget(self.playersList)
@@ -77,7 +79,7 @@ class GameScreen(QWidget):
         self.playersList.clear()
 
         for player in newPlayersList:
-            self.playersList.addItem(player)
+            self.playersList.append(player)
 
     @pyqtSlot()
     def sendMessageToChat(self):
@@ -96,12 +98,7 @@ class GameScreen(QWidget):
         self.roomLabel.setText(f"КОМНАТА: {roomName}")
 
     def requestPlayers(self):
-        if self.isVisible():
-            message = {
-                "type": "get_players",
-                "room_name": self.client.currentRoom
-            }
-            self.client.sendMessage(message)
+        self.client.requestPlayers()
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -109,6 +106,8 @@ class GameScreen(QWidget):
         self.requestPlayers()
         self.chatField.clear()
         self.gameField.setFocus()
+        self.audioPlayer.playMatchMusic()
 
     def hideEvent(self, event):
         super().hideEvent(event)
+        self.audioPlayer.playMenuMusic()

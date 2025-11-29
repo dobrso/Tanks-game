@@ -3,49 +3,49 @@ import os
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QTransform, QPen, QColor, QBrush
 
-from src.Utilities.Settings import BULLET_PATH
+from src.Utilities.Settings import BULLET_PATH, DEBUG_MODE
 
 
 class BulletDrawer:
-    def __init__(self):
-        self.isTexturesLoaded = False
-        self.bulletTextures = []
+    def __init__(self, debugMode=DEBUG_MODE):
+        self.debugMode = debugMode
+        self.isTextureLoaded = False
+        self.bulletTexture = None
 
-        self.loadTextures()
+        self.loadTexture()
 
-    def loadTextures(self):
-        if self.isTexturesLoaded:
+    def loadTexture(self):
+        if self.isTextureLoaded:
             return
 
         try:
-            for bulletPath in BULLET_PATH:
-                if os.path.exists(bulletPath):
-                    pixmap = QPixmap(bulletPath)
-                    transform = QTransform()
-                    transform.rotate(90)
-                    rotatedPixmap = pixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)
-                    self.bulletTextures.append(rotatedPixmap)
+            if os.path.exists(BULLET_PATH):
+                pixmap = QPixmap(BULLET_PATH)
+                transform = QTransform()
+                transform.rotate(90)
+                rotatedPixmap = pixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)
+                self.bulletTexture = rotatedPixmap
 
-            self.isTexturesLoaded = True
-            print("Все текстуры пуль загружены успешно")
+            self.isTextureLoaded = True
 
         except Exception as e:
             print(f"Ошибка загрузки текстур: {e}")
 
     def draw(self, painter, bullet):
-        if not self.isTexturesLoaded:
+        if not self.isTextureLoaded or self.bulletTexture is None:
             self.drawSimpleBullet(painter, bullet)
         else:
             self.drawBullet(painter, bullet)
 
-    def drawBullet(self, painter, bullet):
-        bulletTexture = self.bulletTextures[0]
+        if self.debugMode:
+            self.drawHitbox(painter, bullet)
 
+    def drawBullet(self, painter, bullet):
         painter.save()
         painter.translate(bullet.x, bullet.y)
         painter.rotate(bullet.direction)
 
-        scaledBullet = bulletTexture.scaled(
+        scaledBullet = self.bulletTexture.scaled(
             bullet.width,
             bullet.height,
             Qt.AspectRatioMode.IgnoreAspectRatio,

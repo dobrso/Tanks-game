@@ -13,18 +13,10 @@ class Client(threading.Thread):
         self.host = host
         self.port = port
 
-        self.running = True
-
-        # TODO
-        # Запрос с сервера на получение имени
-        self.username = None
+        self.socket = None
+        self.running = False
 
         self.currentRoom = None
-
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((host, port))
-
-        self.start()
 
     def run(self):
         while self.running:
@@ -37,14 +29,16 @@ class Client(threading.Thread):
                 self.handleMessage(message)
 
             except Exception as e:
-                print(e)
-
-            finally:
-                pass
+                print(f"[ОШИБКА]: {e}")
 
     def connect(self):
         try:
-            pass
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.connect((self.host, self.port))
+
+            self.running = True
+
+            self.start()
         except Exception as e:
             print(e)
 
@@ -125,5 +119,12 @@ class Client(threading.Thread):
     def requestRooms(self):
         message = {
             "type": "get_rooms"
+        }
+        self.sendMessage(message)
+
+    def requestPlayers(self):
+        message = {
+            "type": "get_players",
+            "room_name": self.currentRoom
         }
         self.sendMessage(message)

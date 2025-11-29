@@ -1,6 +1,6 @@
 from PIL.ImageQt import QPixmap
 from PyQt6.QtCore import Qt, QTimer, pyqtSlot
-from PyQt6.QtGui import QPainter, QPen
+from PyQt6.QtGui import QPainter
 from PyQt6.QtWidgets import QWidget
 
 from src.Drawers.BulletDrawer import BulletDrawer
@@ -22,8 +22,6 @@ class GameField(QWidget):
         self.tanks = []
         self.bullets = []
         self.pressedKeys = set()
-
-        self.background = QPixmap(BACKGROUND_PATH[0])
 
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
@@ -88,6 +86,6 @@ class GameField(QWidget):
         super().showEvent(event)
         self.timer.start()
 
-    def hideEvent(self, event):
-        super().hideEvent(event)
+    def closeEvent(self, event):
+        super().closeEvent(event)
         self.timer.stop()

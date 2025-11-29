@@ -9,6 +9,8 @@ WINDOW_HEIGHT = 720
 GAME_FIELD_WIDTH = 944
 GAME_FIELD_HEIGHT = 672
 
+DEBUG_MODE = False
+
 MUSIC_PATH = {
     "MENU": "assets/music/menu.wav",
     "MATCH": "assets/music/match.wav",
@@ -29,10 +31,8 @@ TANK_HULL_PATH = [
     "assets/textures/tanks/hulls/hull_4.png",
 ]
 
-BULLET_PATH = [
-    "assets/textures/bullets/bullet_medium.png",
-]
+BULLET_PATH = "assets/textures/bullets/bullet_medium.png"
 
-BACKGROUND_PATH = [
-    "assets/textures/backgrounds/background.png",
-]
+BACKGROUND_PATH = "assets/textures/backgrounds/background1.png"
+
+ICON_PATH = "assets/icons/icons.png"

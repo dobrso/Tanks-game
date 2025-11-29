@@ -3,7 +3,7 @@ import os
 from PyQt6.QtCore import QUrl
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 
-from src.Utilities.Settings import DEFAULT_VOLUME
+from src.Utilities.Settings import DEFAULT_VOLUME, MUSIC_PATH
 
 
 class AudioPlayer(QMediaPlayer):
@@ -14,7 +14,21 @@ class AudioPlayer(QMediaPlayer):
 
         self.setAudioOutput(self.audioOutput)
 
-    def playMusic(self, filepath):
+    def playMenuMusic(self):
+        self.stopMusic()
+
+        filepath = MUSIC_PATH["MENU"]
+
+        if os.path.exists(filepath):
+            self.setSource(QUrl.fromLocalFile(filepath))
+            self.setLoops(QMediaPlayer.Loops.Infinite)
+            self.play()
+
+    def playMatchMusic(self):
+        self.stopMusic()
+
+        filepath = MUSIC_PATH["MATCH"]
+
         if os.path.exists(filepath):
             self.setSource(QUrl.fromLocalFile(filepath))
             self.setLoops(QMediaPlayer.Loops.Infinite)
@@ -23,6 +37,5 @@ class AudioPlayer(QMediaPlayer):
     def stopMusic(self):
         self.stop()
 
-    def setVolume(self, volume: int):
-        volume = volume / 100
+    def setVolume(self, volume):
         self.audioOutput.setVolume(volume)

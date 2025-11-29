@@ -8,23 +8,21 @@ from src.Utilities.Settings import BACKGROUND_PATH
 
 class GameFieldDrawer:
     def __init__(self):
-        self.isTexturesLoaded = False
-        self.backgroundTextures = []
+        self.isTextureLoaded = False
+        self.backgroundTexture = None
 
-        self.loadTextures()
+        self.loadTexture()
 
-    def loadTextures(self):
-        if self.isTexturesLoaded:
+    def loadTexture(self):
+        if self.isTextureLoaded:
             return
 
         try:
-            for backgroundPath in BACKGROUND_PATH:
-                if os.path.exists(backgroundPath):
-                    pixmap = QPixmap(backgroundPath)
-                    self.backgroundTextures.append(pixmap)
+            if os.path.exists(BACKGROUND_PATH):
+                pixmap = QPixmap(BACKGROUND_PATH)
+                self.backgroundTexture = pixmap
 
-            self.isTexturesLoaded = True
-            print("Все текстуры фонов загружены успешно")
+            self.isTextureLoaded = True
 
         except Exception as e:
             print(f"Ошибка загрузки текстур: {e}")
@@ -32,7 +30,7 @@ class GameFieldDrawer:
     def draw(self, painter, rectangle):
         self.drawBorder(painter, rectangle)
 
-        if not self.isTexturesLoaded:
+        if not self.isTextureLoaded or self.backgroundTexture is None:
             self.drawSimpleBackground(painter, rectangle)
         else:
             self.drawBackground(painter, rectangle)
@@ -41,7 +39,7 @@ class GameFieldDrawer:
         painter.fillRect(rectangle, Qt.GlobalColor.white)
 
     def drawBackground(self, painter, rectangle):
-        painter.drawPixmap(rectangle, self.backgroundTextures[0])
+        painter.drawPixmap(rectangle, self.backgroundTexture)
 
     def drawBorder(self, painter, rectangle):
         oldPen = painter.pen()

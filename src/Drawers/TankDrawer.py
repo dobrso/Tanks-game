@@ -3,11 +3,12 @@ import os
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QTransform, QColor, QPen
 
-from src.Utilities.Settings import TANK_HULL_PATH, TANK_GUN_PATH
+from src.Utilities.Settings import TANK_HULL_PATH, TANK_GUN_PATH, DEBUG_MODE
 
 
 class TankDrawer:
-    def __init__(self):
+    def __init__(self, debugMode=DEBUG_MODE):
+        self.debugMode = debugMode
         self.isTexturesLoaded = False
         self.hullTextures = []
         self.gunTextures = []
@@ -36,7 +37,6 @@ class TankDrawer:
                     self.gunTextures.append(rotatedPixmap)
 
             self.isTexturesLoaded = True
-            print("Все текстуры танков загружены успешно")
 
         except Exception as e:
             print(f"Ошибка загрузки текстур: {e}")
@@ -52,6 +52,9 @@ class TankDrawer:
             self.drawSimpleTank(painter, tank)
         else:
             self.drawTank(painter, tank)
+
+        if self.debugMode:
+            self.drawHitbox(painter, tank)
 
     def drawTank(self, painter, tank):
         textureIndex = self.getTextureIndex(tank.playerName)

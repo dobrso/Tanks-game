@@ -64,8 +64,13 @@ class Server:
                         roomData["players"].remove(connection)
                     if self.clients[connection] in roomData["tanks"]:
                         del roomData["tanks"][self.clients[connection]]
+                    if self.clients[connection] in roomData["scores"]:
+                        del roomData["scores"][self.clients[connection]]
+
                     if not roomName:
                         del self.rooms[roomName]
+                    else:
+                        self.broadcastRoom(roomName)
 
             with self.clientsLock:
                 if connection in self.clients:
@@ -154,12 +159,13 @@ class Server:
             if roomName not in self.rooms:
                 self.rooms[roomName] = {
                     "players": [connection],
-                    "tanks": {},
+                    "scores": {playerName: 0},
+                    "tanks": {playerName: self.createTank(playerName)},
                     "bullets": [],
                     "gameLoopThread": None
                 }
                 print(f"[КОМНАТА]: создана комната {roomName} игроком {playerName}")
-                self.rooms[roomName]["tanks"][playerName] = self.createTank(playerName)
+                self.broadcastRoom(roomName)
                 self.broadcastRooms()
                 self.startGameLoopThread(roomName)
             else:
@@ -169,6 +175,7 @@ class Server:
         with self.roomsLock:
             if roomName in self.rooms:
                 self.rooms[roomName]["players"].append(connection)
+                self.rooms[roomName]["scores"][playerName] = 0
                 self.rooms[roomName]["tanks"][playerName] = self.createTank(playerName)
                 self.broadcastRoom(roomName)
                 print(f"[КОМНАТА]: в {roomName} подключился {playerName}")
@@ -280,5 +287,6 @@ class Server:
             tankHitbox = tank.getHitbox()
 
             if bulletHitbox.intersects(tankHitbox):
+                roomData["scores"][bullet.playerName] += 1
                 roomData["bullets"].remove(bullet)
                 tank.respawn()

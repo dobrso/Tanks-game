@@ -19,9 +19,6 @@ class RoomsScreen(QWidget):
     def initUI(self):
         layout = QVBoxLayout()
 
-        toMenuButton = QPushButton("Назад")
-        toMenuButton.clicked.connect(self.toMenuScreen)
-
         self.roomsList = QListWidget()
         self.roomsList.doubleClicked.connect(self.joinRoom)
 
@@ -36,15 +33,10 @@ class RoomsScreen(QWidget):
         buttonsLayout.addWidget(connectButton)
         buttonsLayout.addWidget(toCreateRoomButton)
 
-        layout.addWidget(toMenuButton)
         layout.addWidget(self.roomsList)
         layout.addLayout(buttonsLayout)
 
         self.setLayout(layout)
-
-    @pyqtSlot()
-    def toMenuScreen(self):
-        self.navigation.showScreen("menu")
 
     @pyqtSlot()
     def joinRoom(self):

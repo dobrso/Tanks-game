@@ -1,13 +1,13 @@
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QApplication
 
 from src.Screens.GameScreen import GameScreen
-from src.Screens.MenuScreen import MenuScreen
-from src.Screens.Navigation import Navigation
 from src.Screens.RoomsScreen import RoomsScreen
 from src.Utilities.AudioPlayer import AudioPlayer
 from src.Network.Client import Client
+from src.Utilities.Navigation import Navigation
 from src.Utilities.Signals import Signals
-from src.Utilities.Settings import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, MUSIC_PATH
+from src.Utilities.Settings import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, ICON_PATH
 
 
 class MainWindow(QMainWindow):
@@ -15,13 +15,16 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle(WINDOW_TITLE)
         self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.setWindowIcon(QIcon(ICON_PATH))
         self.centerWindow()
 
         self.signals = Signals()
+
         self.client = Client(self.signals)
+        self.client.connect()
 
         self.audioPlayer = AudioPlayer()
-        self.audioPlayer.playMusic(MUSIC_PATH["MENU"])
+        self.audioPlayer.playMenuMusic()
 
         self.stackedWidget = QStackedWidget()
         self.setCentralWidget(self.stackedWidget)
@@ -30,14 +33,12 @@ class MainWindow(QMainWindow):
 
         self.createScreens()
 
-        self.navigation.showScreen("menu")
+        self.navigation.showScreen("rooms")
 
     def createScreens(self):
-        menuScreen = MenuScreen(self.client, self.navigation)
         roomsScreen = RoomsScreen(self.client, self.signals, self.navigation)
-        gameScreen = GameScreen(self.client, self.signals, self.navigation)
+        gameScreen = GameScreen(self.client, self.signals, self.navigation, self.audioPlayer)
 
-        self.navigation.addScreen("menu", menuScreen)
         self.navigation.addScreen("rooms", roomsScreen)
         self.navigation.addScreen("game", gameScreen)
 
