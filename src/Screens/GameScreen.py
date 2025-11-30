@@ -1,6 +1,5 @@
 from PyQt6.QtCore import Qt, pyqtSlot
-from PyQt6.QtWidgets import QWidget, QGridLayout, QPushButton, QLabel, QListWidget, QTextEdit, QLineEdit, \
-    QVBoxLayout
+from PyQt6.QtWidgets import QWidget, QGridLayout, QPushButton, QLabel, QTextEdit, QLineEdit, QVBoxLayout
 
 from src.GameObjects.GameField import GameField
 
@@ -20,36 +19,49 @@ class GameScreen(QWidget):
 
     def initUI(self):
         layout = QGridLayout()
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(15)
 
         leaveButton = QPushButton("Выйти в Лобби")
+        leaveButton.setProperty("class", "danger")
         leaveButton.clicked.connect(self.leaveRoom)
 
         self.roomLabel = QLabel()
+        self.roomLabel.setObjectName("roomLabel")
         self.roomLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.roomLabel.setProperty("class", "title")
 
         playersLayout = QVBoxLayout()
+        playersLayout.setSpacing(8)
 
         playersLabel = QLabel("ИГРОКИ")
         playersLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        playersLabel.setProperty("class", "title")
 
         self.playersList = QTextEdit()
+        self.playersList.setObjectName("playersList")
         self.playersList.setReadOnly(True)
 
         playersLayout.addWidget(playersLabel)
         playersLayout.addWidget(self.playersList)
 
         chatLayout = QVBoxLayout()
+        chatLayout.setSpacing(8)
 
         chatLabel = QLabel("ЧАТ")
         chatLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        chatLabel.setProperty("class", "title")
 
         self.chatField = QTextEdit()
+        self.chatField.setObjectName("chatField")
         self.chatField.setReadOnly(True)
 
         chatLayout.addWidget(chatLabel)
         chatLayout.addWidget(self.chatField)
 
         self.inputField = QLineEdit()
+        self.inputField.setObjectName("inputField")
+        self.inputField.setPlaceholderText("Введите сообщение...")
         self.inputField.returnPressed.connect(self.sendMessageToChat)
 
         self.gameField = GameField(self.client, self.signals)

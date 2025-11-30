@@ -140,8 +140,8 @@ class Server:
         players = []
 
         with self.roomsLock:
-            for connection in self.rooms[roomName]["players"]:
-                players.append(self.clients[connection])
+            for player, score in self.rooms[roomName]["scores"].items():
+                players.append(f"{player} - {score}")
 
         message = {
             "type": "players",
@@ -185,10 +185,14 @@ class Server:
             if roomName in self.rooms:
                 if connection in self.rooms[roomName]["players"]:
                     self.rooms[roomName]["players"].remove(connection)
-                    self.broadcastRoom(roomName)
+
                 if playerName in self.rooms[roomName]["tanks"]:
                     del self.rooms[roomName]["tanks"][playerName]
-                    self.broadcastRoom(roomName)
+
+                if playerName in self.rooms[roomName]["scores"]:
+                    del self.rooms[roomName]["scores"][playerName]
+
+                self.broadcastRoom(roomName)
                 print(f"[КОМНАТА]: {playerName} покинул комнату {roomName}")
 
                 if not self.rooms[roomName]["players"]:
@@ -231,7 +235,7 @@ class Server:
                     break
 
                 for bullet in roomData["bullets"]:
-                    self.checkBulletHit(bullet, roomData)
+                    self.checkBulletHit(bullet, roomData, roomName)
                     bullet.update()
                     if bullet.isExpired() or bullet.isOutOfBounds():
                         roomData["bullets"].remove(bullet)
@@ -278,15 +282,18 @@ class Server:
                 if bullet:
                     self.rooms[roomName]["bullets"].append(bullet)
 
-    def checkBulletHit(self, bullet, roomData):
+    def checkBulletHit(self, bullet, roomData, roomName):
         for playerName, tank in roomData["tanks"].items():
-            if bullet.playerName == playerName:
+            bulletOwner = bullet.playerName
+
+            if bulletOwner == playerName:
                 continue
 
             bulletHitbox = bullet.getHitbox()
             tankHitbox = tank.getHitbox()
 
             if bulletHitbox.intersects(tankHitbox):
-                roomData["scores"][bullet.playerName] += 1
+                roomData["scores"][bulletOwner] += 1
                 roomData["bullets"].remove(bullet)
                 tank.respawn()
+                self.broadcastRoom(roomName)

@@ -1,0 +1,236 @@
+QWidget {
+    background-color: #2b2b2b;
+    color: #ffffff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    border: none;
+}
+
+QScrollBar:vertical {
+    background-color: #37474f;
+    width: 16px;
+    margin: 0px;
+    border-radius: 8px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #546e7a;
+    border-radius: 8px;
+    min-height: 30px;
+    margin: 3px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #607d8b;
+}
+
+QScrollBar::handle:vertical:pressed {
+    background-color: #4fc3f7;
+}
+
+QScrollBar::add-line:vertical {
+    border: none;
+    background: none;
+    height: 0px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+    height: 0px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+    border: none;
+    background: none;
+    color: none;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+QScrollBar:horizontal {
+    background-color: #37474f;
+    height: 16px;
+    margin: 0px;
+    border-radius: 8px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #546e7a;
+    border-radius: 8px;
+    min-width: 30px;
+    margin: 3px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #607d8b;
+}
+
+QScrollBar::handle:horizontal:pressed {
+    background-color: #4fc3f7;
+}
+
+QScrollBar::add-line:horizontal {
+    border: none;
+    background: none;
+    width: 0px;
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+    border: none;
+    background: none;
+    width: 0px;
+    subcontrol-position: left;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::up-arrow:horizontal, QScrollBar::down-arrow:horizontal {
+    border: none;
+    background: none;
+    color: none;
+}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: none;
+}
+
+QLabel {
+    background-color: transparent;
+    color: #ffffff;
+    padding: 8px;
+}
+
+QLabel.title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #4fc3f7;
+    padding: 12px;
+}
+
+QPushButton {
+    background-color: #37474f;
+    color: #ffffff;
+    border: 2px solid #455a64;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: bold;
+    font-size: 14px;
+    min-height: 20px;
+}
+
+QPushButton:hover {
+    background-color: #455a64;
+    border-color: #546e7a;
+}
+
+QPushButton:pressed {
+    background-color: #263238;
+    border-color: #37474f;
+}
+
+QPushButton:focus {
+    border-color: #4fc3f7;
+}
+
+QPushButton.primary {
+    background-color: #1976d2;
+    border-color: #1565c0;
+}
+
+QPushButton.primary:hover {
+    background-color: #1565c0;
+    border-color: #0d47a1;
+}
+
+QPushButton.danger {
+    background-color: #d32f2f;
+    border-color: #c62828;
+}
+
+QPushButton.danger:hover {
+    background-color: #c62828;
+    border-color: #b71c1c;
+}
+
+QLineEdit {
+    background-color: #37474f;
+    color: #ffffff;
+    border: 2px solid #455a64;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+QLineEdit:focus {
+    border-color: #4fc3f7;
+}
+
+QLineEdit#inputField {
+    background-color: #37474f;
+    border: 2px solid #546e7a;
+}
+
+QTextEdit {
+    background-color: #37474f;
+    color: #ffffff;
+    border: 2px solid #455a64;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 14px;
+}
+
+QTextEdit#playersList,
+QTextEdit#chatField {
+    background-color: #263238;
+    border: 2px solid #37474f;
+}
+
+QListWidget {
+    background-color: #37474f;
+    color: #ffffff;
+    border: 2px solid #455a64;
+    border-radius: 6px;
+    padding: 4px;
+    font-size: 14px;
+    outline: none;
+}
+
+QListWidget::item {
+    background-color: transparent;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 2px;
+}
+
+QListWidget::item:selected {
+    background-color: #4fc3f7;
+    color: #000000;
+}
+
+QListWidget::item:hover {
+    background-color: #455a64;
+}
+
+QDialog {
+    background-color: #2b2b2b;
+    color: #ffffff;
+}
+
+#roomLabel {
+    background-color: #1976d2;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 12px;
+    border: 2px solid #1565c0;
+}

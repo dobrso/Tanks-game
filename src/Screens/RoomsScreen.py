@@ -1,8 +1,8 @@
-from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtCore import pyqtSlot, Qt
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QListWidgetItem, QDialog, \
     QLineEdit, QDialogButtonBox, QLabel
 
-from src.Utilities.Settings import WINDOW_TITLE
+from src.Utilities.Settings import WINDOW_TITLE, DIALOG_WIDTH, DIALOG_HEIGHT
 
 
 class RoomsScreen(QWidget):
@@ -18,13 +18,21 @@ class RoomsScreen(QWidget):
 
     def initUI(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        roomsLabel = QLabel("Лобби")
+        roomsLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        roomsLabel.setProperty("class", "title")
 
         self.roomsList = QListWidget()
         self.roomsList.doubleClicked.connect(self.joinRoom)
 
         buttonsLayout = QHBoxLayout()
+        buttonsLayout.setSpacing(10)
 
         connectButton = QPushButton("Подключиться")
+        connectButton.setProperty("class", "primary")
         connectButton.clicked.connect(self.joinRoom)
 
         toCreateRoomButton = QPushButton("Создать комнату")
@@ -33,6 +41,7 @@ class RoomsScreen(QWidget):
         buttonsLayout.addWidget(connectButton)
         buttonsLayout.addWidget(toCreateRoomButton)
 
+        layout.addWidget(roomsLabel)
         layout.addWidget(self.roomsList)
         layout.addLayout(buttonsLayout)
 
@@ -88,13 +97,18 @@ class CreateRoomDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle(WINDOW_TITLE)
+        self.setFixedSize(DIALOG_WIDTH, DIALOG_HEIGHT)
         self.setModal(True)
         self.initUI()
 
     def initUI(self):
         layout = QVBoxLayout()
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
 
-        label = QLabel("Название комнаты")
+        label = QLabel("Создание комнаты")
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setProperty("class", "title")
 
         self.roomNameInput = QLineEdit()
         self.roomNameInput.setPlaceholderText("Введите название комнаты")
@@ -102,7 +116,8 @@ class CreateRoomDialog(QDialog):
         buttonBox = QDialogButtonBox()
 
         createButton = QPushButton("Создать")
-        backButton = QPushButton("Назад")
+        createButton.setProperty("class", "primary")
+        backButton = QPushButton("Закрыть")
 
         buttonBox.addButton(createButton, QDialogButtonBox.ButtonRole.AcceptRole)
         buttonBox.addButton(backButton, QDialogButtonBox.ButtonRole.RejectRole)
