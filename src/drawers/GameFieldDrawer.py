@@ -3,7 +3,7 @@ import os
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QPen
 
-from src.Utilities.Settings import BACKGROUND_PATH
+from src.utilities.Settings import BACKGROUND_PATH
 
 
 class GameFieldDrawer:

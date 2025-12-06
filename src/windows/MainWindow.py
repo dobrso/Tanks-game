@@ -1,13 +1,13 @@
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QApplication
 
-from src.Screens.GameScreen import GameScreen
-from src.Screens.RoomsScreen import RoomsScreen
-from src.Utilities.AudioPlayer import AudioPlayer
-from src.Network.Client import Client
-from src.Utilities.Navigation import Navigation
-from src.Utilities.Signals import Signals
-from src.Utilities.Settings import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, ICON_PATH
+from src.screens.GameScreen import GameScreen
+from src.screens.RoomsScreen import RoomsScreen
+from src.utilities.AudioPlayer import AudioPlayer
+from src.network.Client import Client
+from src.utilities.Navigation import Navigation
+from src.utilities.Signals import Signals
+from src.utilities.Settings import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, ICON_PATH
 
 
 class MainWindow(QMainWindow):

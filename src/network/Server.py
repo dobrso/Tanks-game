@@ -5,8 +5,8 @@ import socket
 import threading
 import time
 
-from src.Utilities.Settings import HOST, PORT, BUFFER_SIZE, GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
-from src.GameObjects.Tank import Tank
+from src.utilities.Settings import HOST, PORT, BUFFER_SIZE, GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
+from src.gameObjects.Tank import Tank
 
 
 class Server:

@@ -1,7 +1,7 @@
 from PyQt6.QtCore import Qt, pyqtSlot
 from PyQt6.QtWidgets import QWidget, QGridLayout, QPushButton, QLabel, QTextEdit, QLineEdit, QVBoxLayout
 
-from src.GameObjects.GameField import GameField
+from src.gameObjects.GameField import GameField
 
 
 class GameScreen(QWidget):

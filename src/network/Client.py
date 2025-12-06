@@ -2,7 +2,7 @@ import pickle
 import socket
 import threading
 
-from src.Utilities.Settings import HOST, PORT, BUFFER_SIZE
+from src.utilities.Settings import HOST, PORT, BUFFER_SIZE
 
 
 class Client(threading.Thread):

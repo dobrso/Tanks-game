@@ -3,7 +3,7 @@ import os
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QTransform, QPen, QColor, QBrush
 
-from src.Utilities.Settings import BULLET_PATH, DEBUG_MODE
+from src.utilities.Settings import BULLET_PATH, DEBUG_MODE
 
 
 class BulletDrawer:

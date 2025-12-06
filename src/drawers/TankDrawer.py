@@ -3,7 +3,7 @@ import os
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QTransform, QColor, QPen
 
-from src.Utilities.Settings import TANK_HULL_PATH, TANK_GUN_PATH, DEBUG_MODE
+from src.utilities.Settings import TANK_HULL_PATH, TANK_GUN_PATH, DEBUG_MODE
 
 
 class TankDrawer:

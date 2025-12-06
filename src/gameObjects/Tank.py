@@ -3,8 +3,8 @@ import random
 
 from PyQt6.QtCore import QRectF
 
-from src.GameObjects.Bullet import Bullet
-from src.Utilities.Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
+from src.gameObjects.Bullet import Bullet
+from src.utilities.Settings import GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT
 
 
 class Tank:

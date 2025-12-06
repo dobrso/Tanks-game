@@ -2,7 +2,7 @@ from PyQt6.QtCore import pyqtSlot, Qt
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QListWidgetItem, QDialog, \
     QLineEdit, QDialogButtonBox, QLabel
 
-from src.Utilities.Settings import WINDOW_TITLE, DIALOG_WIDTH, DIALOG_HEIGHT
+from src.utilities.Settings import WINDOW_TITLE, DIALOG_WIDTH, DIALOG_HEIGHT
 
 
 class RoomsScreen(QWidget):

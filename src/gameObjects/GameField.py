@@ -2,9 +2,9 @@ from PyQt6.QtCore import Qt, QTimer, pyqtSlot
 from PyQt6.QtGui import QPainter
 from PyQt6.QtWidgets import QWidget
 
-from src.Drawers.BulletDrawer import BulletDrawer
-from src.Drawers.GameFieldDrawer import GameFieldDrawer
-from src.Drawers.TankDrawer import TankDrawer
+from src.drawers.BulletDrawer import BulletDrawer
+from src.drawers.GameFieldDrawer import GameFieldDrawer
+from src.drawers.TankDrawer import TankDrawer
 
 
 class GameField(QWidget):
